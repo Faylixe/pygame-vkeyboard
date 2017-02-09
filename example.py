@@ -22,3 +22,7 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
+            elif event.type == MOUSEBUTTONDOWN:
+                # TODO : press
+            elif event.type == MOUSEBUTTONUP:
+                # TODO : release

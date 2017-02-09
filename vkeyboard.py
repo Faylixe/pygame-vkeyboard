@@ -39,7 +39,7 @@ class VKeyboardStyle(object):
     def drawKey(self, surface, key, position, size):
         """ Default drawing method for key. """
         pygame.draw.rect(surface, self.cellBackgroundColor, position + size)
-        surface.blit(self.font.render(key, 1, self.textColor, None), position) # TODO : Center key.
+        return surface.blit(self.font.render(key, 1, self.textColor, None), position) # TODO : Center key.
 
 # Default style.
 VKeyboardStyle.DEFAULT = VKeyboardStyle(
@@ -49,6 +49,34 @@ VKeyboardStyle.DEFAULT = VKeyboardStyle(
     (0, 0, 0),
     5
 )
+
+class VKey(object):
+    """ """
+
+    def __init__(self, value):
+        """ """
+        self.state = 0
+        self.value = value
+        self.position = None
+
+    def isTouched(self, position):
+        """ """
+        return False
+    
+    def updateBuffer(self, buffer):
+        """ """
+        buffer += self.value
+
+class VKeyRow(object):
+    """ """
+
+    def __init__(self):
+        """ """
+        self.keys = []
+
+    def __contains__(self, position):
+        """ """
+        return False
 
 class VKeyboard(object):
     """ Virtual Keyboard class. """
@@ -67,7 +95,8 @@ class VKeyboard(object):
         self.buffer = ''
         self.active = False
         self.special = False
-        self.computeKeyboardBound()
+        self.computeKeyboardBound() 
+        self.rows = []
 
     def computeKeyboardBound(self):
         """ Compute keyboard bound. """
@@ -92,4 +121,26 @@ class VKeyboard(object):
                     self.style.drawKey(self.window, key, (x, y), self.cellSize)
                     x += self.cellSize[0] + padding
                 y += self.cellSize[0] + padding
-                    
+
+    def getKey(self, position):
+        """ """
+        for row in self.rows :
+            if position in row:
+                for key in row:
+                    if key.isTouched(position):
+                        return key
+        return None
+
+    def onKeyDown(self, position):
+        """ """
+        key = self.getKey(position)
+        if key is not None:
+            key.state = 1
+
+    def onKeyUp(self, position):
+        """ """
+         key = self.getKey(position)
+         if key is not None:
+            key.state = 0
+            key.updateBuffer(self.buffer)
+            
