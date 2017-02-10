@@ -4,7 +4,7 @@ Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable
 
 ## Basic usage 
 
-VKeyboard only require a pygame surface to be displayed on and a text consumer function, as in the following example :
+``VKeyboard`` only require a pygame surface to be displayed on and a text consumer function, as in the following example :
 
 ```python
 from pygame_vkeyboard import VKeyboard
@@ -26,7 +26,7 @@ keyboard.draw()
 
 ## Event managment
 
-A VKeyboard handle the following pygame event :
+A ``VKeyboard`` handle the following pygame event :
 
 - **MOUSEBUTTONDOWN**
 - **MOUSEBUTTONUP**
@@ -50,12 +50,4 @@ Comming soon.
 
 ## Custom rendering using VKeyboardRenderer
 
-Comming soon.
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+If you want to customize keyboard rendering you could provide a ``VKeyboardRenderer``instance at ``VKeyboard``construction.
