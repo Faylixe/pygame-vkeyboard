@@ -24,23 +24,21 @@ keyboard.enable()
 keyboard.draw()
 ```
 
-
 ## Event managment
 
 A VKeyboard handle the following pygame event :
 
 - **MOUSEBUTTONDOWN**
 - **MOUSEBUTTONUP**
+- **KEYDOWN**
+- **KEYUP**
 
-Which are bound to their keyboard equivalent (**KEYDOWN** and **KEYUP**). When such event are detected,
-associated callback method should be executed as following :
+In order to process those event, keyboard instance event handling method should be called like in the following example:
 
 ```python
 for event in pygame.event.get():
-    if event.type == MOUSEBUTTONDOWN:
-        keyboard.on_key_down(pygame.mouse.get_pos())
-    elif event.type == MOUSEBUTTONUP:
-        keyboard.on_key_up(pygame.mouse.get_pos())
+   keyboard.on_event(event)
+   # Perform your other event handling here.
 ```
 
 It will update key state accordingly as the keyboard buffer as well. Buffer modification will be notified

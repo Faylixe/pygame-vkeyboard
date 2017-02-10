@@ -279,29 +279,47 @@ class VKeyboard(object):
                 for key in row.keys:
                     self.renderer.draw_key(self.surface, key)
 
-    def on_key_down(self, position):
-        """Callback method for a touch down event.
-        
-        :param position: Position the touch event has been located at.
+    def on_event(self, event):
+        """
+
+        :param event:
         """
         if self.state > 0:
-            key = self.layout.get_key_at(position)
-            if key is not None:
-                key.state = 1
-                self.renderer.draw_key(self.surface, key)
-
-    def on_key_up(self, position):
-        """Callback method for a touch up event.
-        
-        If key is located at the given position, the buffer will be updated
-        and the text consumer called with the new buffer value.
-
-        :param position: Position the touch event has been located at.
+            if event.type == MOUSEBUTTONDOWN:
+                key = self.layout.get_key_at(position)
+                if key is not None:
+            elif event.type == MOUSEBUTTONUP:
+                key = self.layout.get_key_at(position)
+                if key is not None:
+                    self.on_key_up(key)
+            elif event.type == KEYDOWN:
+                value = pygame.key.name(event.key)
+                # TODO : Find from layout (consider checking layout key space ?)
+            elif event.type == KEYUP:
+                value = pygame.key.name(event.key)
+                # TODO : Find from layout (consider checking layout key space ?)
+                
+    def set_key_state(self, key, state):
         """
-        if self.state > 0:
-            key = self.layout.get_key_at(position)
-            if key is not None:
-                key.state = 0
-                self.buffer = key.update_buffer(self.buffer)
-                self.text_consumer(self.buffer)
-                self.renderer.draw_key(self.surface, key)
+
+        :param key:
+        :param state:
+        """
+        key.state = state
+        self.renderer.draw_key(self.surface, key)
+
+    def on_key_down(self, key):
+        """
+        
+        :param key: 
+        """
+        self.set_key_state(key, 1)
+
+    def on_key_up(self, key):
+        """
+        
+        :param key: 
+        """
+        self.buffer = key.update_buffer(self.buffer)
+        self.text_consumer(self.buffer)
+        self.set_key_state(key, 0)
