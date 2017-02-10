@@ -13,7 +13,7 @@ if __name__ == "__main__":
     pygame.init()
     pygame.font.init()
     window = pygame.display.set_mode((600, 400))
-    layout = VKeyboardLayout(VKeyboardLayout.AZERTY, True, True)
+    layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
     keyboard = VKeyboard(window, consumer, layout)
     keyboard.enable()
     keyboard.draw()
@@ -24,6 +24,6 @@ if __name__ == "__main__":
             if event.type == QUIT:
                 running = False
             elif event.type == MOUSEBUTTONDOWN:
-                keyboard.onKeyDown(pygame.mouse.get_pos())
+                keyboard.on_key_down(pygame.mouse.get_pos())
             elif event.type == MOUSEBUTTONUP:
-                keyboard.onKeyUp(pygame.mouse.get_pos())
+                keyboard.on_key_up(pygame.mouse.get_pos())
