@@ -3,7 +3,7 @@
 import pygame
 from pygame.locals import *
 
-from vkeyboard import VKeyboard
+from vkeyboard import VKeyboard, VKeyboardLayout
 
 def consumer(text):
     """ Simple text consumer. """
@@ -13,8 +13,9 @@ if __name__ == "__main__":
     pygame.init()
     pygame.font.init()
     window = pygame.display.set_mode((600, 400))
-    keyboard = VKeyboard(window, consumer)
-    keyboard.active = True
+    layout = VKeyboardLayout(VKeyboardLayout.AZERTY, True, True)
+    keyboard = VKeyboard(window, consumer, layout)
+    keyboard.enable()
     keyboard.draw()
     running = True
     while running:
@@ -23,6 +24,6 @@ if __name__ == "__main__":
             if event.type == QUIT:
                 running = False
             elif event.type == MOUSEBUTTONDOWN:
-                # TODO : press
+                keyboard.onKeyDown(pygame.mouse.get_pos())
             elif event.type == MOUSEBUTTONUP:
-                # TODO : release
+                keyboard.onKeyUp(pygame.mouse.get_pos())

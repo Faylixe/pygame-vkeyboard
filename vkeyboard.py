@@ -5,16 +5,6 @@ from pygame.locals import *
 
 pygame.font.init()
 
-class VKeyboardLayout(object):
-    """ Keyboard layout class. """
-
-    def __init__(self, rows):
-        """ Default constructor. """
-        self.rows = rows
-
-# Default AZERTY layout.
-VKeyboardLayout.AZERTY = VKeyboardLayout(['azertyuiop', 'qsdfghjklm', 'wxcvbn'])
-
 class VKeyboardStyle(object):
     """ """
 
@@ -51,21 +41,23 @@ VKeyboardStyle.DEFAULT = VKeyboardStyle(
 )
 
 class VKey(object):
-    """ """
+    """
+    """
 
     def __init__(self, value):
         """ """
         self.state = 0
         self.value = value
-        self.position = None
+        self.start = -1
+        self.width = 0
 
     def isTouched(self, position):
         """ """
-        return False
+        return position[0] >= self.start and position[0] <= self.start + self.width
     
     def updateBuffer(self, buffer):
         """ """
-        buffer += self.value
+        return buffer + self.value
 
 class VKeyRow(object):
     """ """
@@ -73,10 +65,67 @@ class VKeyRow(object):
     def __init__(self):
         """ """
         self.keys = []
+        self.start = -1
+        self.height = 0
+
+    def setSize(self, size, padding):
+        """ """
+        self.height = size
+        i = padding
+        for key in self.keys:
+            key.width = size
+            key.start = i
+            i += padding + size
 
     def __contains__(self, position):
         """ """
-        return False
+        return position[1] >= self.start and position[1] <= self.start + self.height
+
+    def __len__(self):
+        return len(self.keys)
+
+class VKeyboardLayout(object):
+    """ Keyboard layout class. """
+
+    # Default AZERTY layout.
+    AZERTY = ['azertyuiop', 'qsdfghjklm', 'wxcvbn']
+    
+    def __init__(self, model, allowUpperCase, allowSpecialChars):
+        """ Default constructor. Initializes layout rows. """
+        self.keyrows = []
+        i = 0
+        for row in model:
+            keyrow = VKeyRow()
+            if i == 0: keyrow.keys.append(VKey('<-')) # Back key.
+            elif i == 1 and allowUpperCase: keyrow.keys.append(VKey('MAJ')) # Majlock.
+            elif i == 2 and allowSpecialChars: keyrow.keys.append(VKey('123')) # Special chars.
+            for value in row:
+                keyrow.keys.append(VKey(value))
+            self.keyrows.append(keyrow)
+            i += 1
+
+    def computeBound(self, surfaceSize, padding):
+        """ Compute keyboard bound. """
+        maxLength = len(max(self.keyrows, key=len))
+        self.cellSize = (surfaceSize[0] - (padding * (maxLength + 1))) / maxLength
+        height = self.cellSize * len(self.keyrows) + padding * (len(self.keyrows) + 1)
+        self.size = (surfaceSize[0], height)
+        self.position = (0, surfaceSize[1] - self.size[1])
+        i = self.position[1] + padding
+        for row in self.keyrows:
+            row.start = i
+            row.setSize(self.cellSize, padding)
+            i += padding + self.cellSize
+        return self.cellSize
+
+    def getKeyAt(self, position):
+        """ """
+        for keyrow in self.keyrows:
+            if position in keyrow:
+                for key in keyrow.keys:
+                    if key.isTouched(position):
+                        return key
+        return None
 
 class VKeyboard(object):
     """ Virtual Keyboard class. """
@@ -84,63 +133,51 @@ class VKeyboard(object):
     def __init__(
         self,
         window,
-        textConsumer,
-        layout=VKeyboardLayout.AZERTY,
-        style=VKeyboardStyle.DEFAULT):
+        textConsumer,   
+        layout,
+        style=VKeyboardStyle.DEFAULT,
+        allowSpecialChars=True,
+        allowUpperCase=True):
         """ Default constructor. """
         self.window = window
         self.textConsumer = textConsumer
         self.layout = layout
         self.style = style
         self.buffer = ''
-        self.active = False
-        self.special = False
-        self.computeKeyboardBound() 
-        self.rows = []
+        self.state = 0
+        bound = layout.computeBound(window.get_size(), style.padding)
+        self.cellSize = (bound, bound)
 
-    def computeKeyboardBound(self):
-        """ Compute keyboard bound. """
-        padding = self.style.padding
-        surfaceSize = self.window.get_size()
-        maxLength = len(max(self.layout.rows, key=len))
-        cellSize = (surfaceSize[0] - (padding * (maxLength + 1))) / maxLength
-        self.cellSize = (cellSize, cellSize)
-        height = cellSize * len(self.layout.rows) + padding * (len(self.layout.rows) + 1)
-        self.size = (surfaceSize[0], height)
-        self.position = (0, surfaceSize[1] - self.size[1])
+    def enable(self):
+        """ """
+        self.state = 1
 
     def draw(self):
         """ Draw the virtual keyboard into the delegate window object. """
-        if self.active:
-            self.style.drawBackground(self.window, self.position, self.size)
+        if self.state > 0:
+            self.style.drawBackground(self.window, self.layout.position, self.layout.size)
             padding = self.style.padding
-            y = self.position[1] + padding
-            for row in self.layout.rows:
+            y = self.layout.position[1] + padding
+            for row in self.layout.keyrows:
                 x = padding
-                for key in row:
-                    self.style.drawKey(self.window, key, (x, y), self.cellSize)
+                for key in row.keys:
+                    self.style.drawKey(self.window, key.value, (x, y), self.cellSize)
                     x += self.cellSize[0] + padding
                 y += self.cellSize[0] + padding
 
-    def getKey(self, position):
-        """ """
-        for row in self.rows :
-            if position in row:
-                for key in row:
-                    if key.isTouched(position):
-                        return key
-        return None
-
     def onKeyDown(self, position):
         """ """
-        key = self.getKey(position)
-        if key is not None:
-            key.state = 1
+        if self.state > 0:
+            key = self.layout.getKeyAt(position)
+            if key is not None:
+                key.state = 1
 
     def onKeyUp(self, position):
         """ """
-         key = self.getKey(position)
-         if key is not None:
-            key.state = 0
-            key.updateBuffer(self.buffer)
+        if self.state > 0:
+            key = self.layout.getKeyAt(position)
+            if key is not None:
+                key.state = 0
+                self.buffer = key.updateBuffer(self.buffer)
+                self.textConsumer(self.buffer)
             

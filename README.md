@@ -18,8 +18,9 @@ def consume(text):
     print('Current text : %s' % text)
 
 # Initializes and activates vkeyboard
-keyboard = VKeyboard(window, consumer)
-keyboard.active = True
+layout = VKeyboardLayout(VKeyboardLayout.AZERTY, True, True)
+keyboard = VKeyboard(window, consumer, layout)
+keyboard.enable()
 keyboard.draw()
 ```
 
