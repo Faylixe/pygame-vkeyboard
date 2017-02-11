@@ -1,4 +1,4 @@
-# pygame.vkeyboard
+# pygame_vkeyboard
 
 Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
