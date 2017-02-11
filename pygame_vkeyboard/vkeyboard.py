@@ -126,7 +126,7 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        pass
+        self.draw_character_key(surface, back)
 
     def draw_uppercase_key(self, surface, uppercase):
         """Default drawing method for key. 
@@ -138,9 +138,9 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        pass
+        self.draw_character_key(surface, uppercase)
     
-    def draw_special_char_key(self, surface, uppercase):
+    def draw_special_char_key(self, surface, special):
         """Default drawing method for key. 
 
         Key is drawn as a simple rectangle filled using this
@@ -150,7 +150,7 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        pass
+        self.draw_character_key(surface, special)
         
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
@@ -224,7 +224,7 @@ class VBackKey(VKey):
     """ Custom key for back. """
 
     """ Back key label instance. """
-    LABEL = '<-'
+    LABEL = '\u1f840''
 
     def __init__(self):
         """ Default constructor. """
@@ -243,11 +243,12 @@ class VActionKey(VKey):
     rather than updating the buffer when pressed.
     """
     
-    def __init__(self, action):
+    def __init__(self, label, action):
         """Default constructor.
 
         :param action: Delegate action called when this key is pressed.
         """
+        VKey.__init__(self, label)
         self.action = action
 
     def update_buffer(self, buffer):
@@ -267,7 +268,7 @@ class VUppercaseKey(VActionKey):
 
         :param keyboard: Keyboard to trigger on_uppercase() when pressed.
         """
-        VActionKey.__init__(self, lambda: keyboard.on_uppercase())
+        VActionKey.__init__(self, '\u1f845', lambda: keyboard.on_uppercase())
 
 class VSpecialCharKey(VActionKey):
     """ Action key for the special char switch. """
@@ -277,7 +278,7 @@ class VSpecialCharKey(VActionKey):
 
         :param keyboard: Keyboard to trigger on_special_char() when pressed.
         """
-        VActionKey.__init__(self, lambda: keyboard.on_special_char())
+        VActionKey.__init__(self, '123', lambda: keyboard.on_special_char())
 
 class VKeyRow(object):
     """A VKeyRow defines a keyboard row which is composed of a list of VKey.
