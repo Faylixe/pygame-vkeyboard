@@ -50,4 +50,25 @@ Comming soon.
 
 ## Custom rendering using VKeyboardRenderer
 
-If you want to customize keyboard rendering you could provide a ``VKeyboardRenderer``instance at ``VKeyboard``construction.
+If you want to customize keyboard rendering you could provide a ``VKeyboardRenderer`` instance at ``VKeyboard``construction.
+A ``VKeyboardRenderer`` can be built using following constructor :
+
+```python
+renderer = VKeyboardRenderer(
+    # Key font.
+    pygame.font.SysFont('arial', 20),
+    # Keyboard background color.
+    (50, 50, 50),
+    # Key background color (one per state, 0 for released, 1 for pressed).
+    ((255, 255, 255), (0, 0, 0)),
+    # Text color for key (one per state as for the key background).
+    ((0, 0, 0), (255, 255, 255)),
+    # Padding in pixel between two keys.
+    5
+)
+```
+
+You can also create your own renderer. It simple consists in two methods :
+
+- **drawBackground(surface, position, size)**: Draws the background of the keyboard.
+- **drawKey(surface, key)**: Draws the given ``VKey``object.
