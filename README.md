@@ -7,7 +7,7 @@ Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable
 ``VKeyboard`` only require a pygame surface to be displayed on and a text consumer function, as in the following example :
 
 ```python
-from pygame_vkeyboard import VKeyboard
+from pygame_vkeyboard import *
 
 # Initializes your window object or surface your want
 # vkeyboard to be displayed on top of.
