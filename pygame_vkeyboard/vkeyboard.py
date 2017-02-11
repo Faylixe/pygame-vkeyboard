@@ -86,7 +86,7 @@ class VKeyboardRenderer(object):
         elif isinstance(key, VSpecialCharKey):
             self.draw_special_char_key(surface, key)
         else:
-            self.draw_character_key(surface, key):
+            self.draw_character_key(surface, key)
     
     def draw_character_key(self, surface, key):
         """Default drawing method for key. 
@@ -105,7 +105,7 @@ class VKeyboardRenderer(object):
         return surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), (x, y))
 
     def draw_space_key(self, surface, space):
-        """Default drawing method for key. 
+        """Default drawing method space key. 
 
         Key is drawn as a simple rectangle filled using this
         cell style background color attribute. Key value is printed
@@ -114,14 +114,10 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        pass
+        self.draw_character_key(surface, space)
     
     def draw_back_key(self, surface, back):
-        """Default drawing method for key. 
-
-        Key is drawn as a simple rectangle filled using this
-        cell style background color attribute. Key value is printed
-        into drawn cell using internal font.
+        """Default drawing method for back key. Drawn as character key.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
@@ -129,11 +125,7 @@ class VKeyboardRenderer(object):
         self.draw_character_key(surface, back)
 
     def draw_uppercase_key(self, surface, uppercase):
-        """Default drawing method for key. 
-
-        Key is drawn as a simple rectangle filled using this
-        cell style background color attribute. Key value is printed
-        into drawn cell using internal font.
+        """Default drawing method for uppercase key. Drawn as character key.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
@@ -141,11 +133,7 @@ class VKeyboardRenderer(object):
         self.draw_character_key(surface, uppercase)
     
     def draw_special_char_key(self, surface, special):
-        """Default drawing method for key. 
-
-        Key is drawn as a simple rectangle filled using this
-        cell style background color attribute. Key value is printed
-        into drawn cell using internal font.
+        """Default drawing method for special char key. Drawn as character key.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
@@ -209,8 +197,8 @@ class VSpaceKey(VKey):
         
         :param renderer: Renderer instance to use for computing min width.
         """
-        VKey.__init__(self, LABEL)
-        self.min_size = renderer.font.size(LABEL)
+        VKey.__init__(self, VSpaceKey.LABEL)
+        self.min_size = renderer.font.size(VSpaceKey.LABEL)
     
     def update_buffer(self, buffer):
         """Text update method. Adds space to the given buffer.
@@ -223,12 +211,9 @@ class VSpaceKey(VKey):
 class VBackKey(VKey):
     """ Custom key for back. """
 
-    """ Back key label instance. """
-    LABEL = '\u1f840''
-
     def __init__(self):
         """ Default constructor. """
-        VKey.__init__(self, LABEL)
+        VKey.__init__(self, u'\u21a9')
     
     def update_buffer(self, buffer):
         """Text update method. Removes last character.
@@ -268,7 +253,7 @@ class VUppercaseKey(VActionKey):
 
         :param keyboard: Keyboard to trigger on_uppercase() when pressed.
         """
-        VActionKey.__init__(self, '\u1f845', lambda: keyboard.on_uppercase())
+        VActionKey.__init__(self, u'\u21e7', lambda: keyboard.on_uppercase())
 
 class VSpecialCharKey(VActionKey):
     """ Action key for the special char switch. """
@@ -389,32 +374,30 @@ class VKeyboardLayout(object):
     def configure_specials_key(self, keyboard):
         """Configures specials key if needed.
 
-        :param allowUpperCase: Boolean flag that indicates usage of upper case switching key.
-        :param allowSpecialChars: Boolean flag that indicates usage of special char switching key.
-        :param allowSpace: Boolean flag that indicates usage of space bar.
+        :param keyboard: 
         """
         special_row = VKeyRow()
         max_length = len(max(self.rows, key=len))
         i = len(self.rows) - 1
         current_row = self.rows[i]
         special_keys = [VBackKey()]
-        if self.allow_uppercase: special_keys.append(VUppercaseKey())
-        if self.allow_special_chars: special_keys.append(VSpecialCharKey())
+        if self.allow_uppercase: special_keys.append(VUppercaseKey(keyboard))
+        if self.allow_special_chars: special_keys.append(VSpecialCharKey(keyboard))
         while len(special_keys) > 0:
             first = False
             while len(special_keys) > 0 and len(current_row) < max_length:
                 current_row.add_key(special_keys.pop(0), first=first)
-                first = not left
+                first = not first
             if i > 0:
                 i -= 1
                 current_row = self.rows[i]
-        if allow_space:
-            special_row.add_key(VSpaceKey())
+        if self.allow_space:
+            special_row.add_key(VSpaceKey(keyboard.renderer))
         first = True
         # Adding left to the special bar.
         while len(special_keys) > 0:
             special_row.add_key(special_keys.pop(0), first=first)
-            first = not left
+            first = not first
         
     def configure_bound(self, surface_size):
         """Compute keyboard bound regarding of this layout.
@@ -474,6 +457,7 @@ class VKeyboard(object):
         self.renderer = renderer
         self.buffer = ''
         self.state = 0
+        self.layout = None
         self.set_layout(layout)
 
     def invalidate(self):
