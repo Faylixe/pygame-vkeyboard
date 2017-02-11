@@ -24,7 +24,6 @@ keyboard.draw()
 """
 
 import logging
-
 import pygame
 from pygame.locals import *
 
@@ -313,9 +312,9 @@ class VKeyboard(object):
                     self.renderer.draw_key(self.surface, key)
 
     def on_event(self, event):
-        """
+        """Pygame event processing callback method.
 
-        :param event:
+        :param event: Event to process.
         """
         if self.state > 0:
             if event.type == MOUSEBUTTONDOWN:
@@ -332,27 +331,24 @@ class VKeyboard(object):
                 # TODO : Find from layout (consider checking layout key space ?)
                 
     def set_key_state(self, key, state):
-        """
+        """Sets the key state and redraws it.
 
-        :param key:
-        :param state:
+        :param key: Key to update state for.
+        :param state: New key state.
         """
         key.state = state
         self.renderer.draw_key(self.surface, key)
 
     def on_key_down(self, key):
-        """
+        """Process key down event by pressing the given key.
         
-        :param key: 
+        :param key: Key that receives the key down event.
         """
         self.set_key_state(key, 1)
         self.last_pressed = key
 
     def on_key_up(self):
-        """
-        
-        :param key: 
-        """
+        """ Process key up event by updating buffer and release key. """
         if (self.last_pressed is not None):
             self.buffer = self.last_pressed.update_buffer(self.buffer)
             self.text_consumer(self.buffer)
