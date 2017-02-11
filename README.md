@@ -46,7 +46,7 @@ through the keyboard text consumer function.
 
 ## Customize layout 
 
-Comming soon.
+Layout.
 
 ## Custom rendering using VKeyboardRenderer
 
