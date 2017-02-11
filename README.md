@@ -19,7 +19,7 @@ def consume(text):
 
 # Initializes and activates vkeyboard
 layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
-keyboard = VKeyboard(window, consumer, layout)
+keyboard = VKeyboard(surface, consumer, layout)
 keyboard.enable()
 keyboard.draw()
 ```
