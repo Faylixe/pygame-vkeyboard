@@ -45,20 +45,18 @@ class VKeyboardRenderer(object):
         A DEFAULT style instance is available as class attribute.
     """
 
-    def __init__(self, font, keyboard_background_color, key_background_color, text_color, padding):
+    def __init__(self, font, keyboard_background_color, key_background_color, text_color):
         """VKeyboardStyle default constructor. 
         
         :param font: Used font for rendering key.
         :param keyboard_background_color: Background color use for the keyboard.
         :param key_background_color: Tuple of background color for key (one value per state).
         :param text_color: Tuple of key text color (one value per state).
-        :param padding: Padding between key (work horizontally as vertically).
         """
         self.font = font
         self.keyboard_background_color = keyboard_background_color
         self.key_background_color = key_background_color
         self.text_color = text_color
-        self.padding = padding
         
     def draw_background(self, surface, position, size):
         """Default drawing method for background.
@@ -91,8 +89,7 @@ VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     pygame.font.SysFont('arial', 20),
     (50, 50, 50),
     ((255, 255, 255), (0, 0, 0)),
-    ((0, 0, 0), (255, 255, 255)),
-    5
+    ((0, 0, 0), (255, 255, 255))
 )
 
 class VKey(object):
@@ -213,16 +210,18 @@ class VKeyboardLayout(object):
 
     # TODO : Insert special characters layout which include number.
 
-    def __init__(self, model, key_size=None, allow_uppercase=True, allow_special_chars=True):
+    def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True):
         """Default constructor. Initializes layout rows.
         
         :param model: Layout model to use.
         :param key_size Size of the key, if not specified will be computed dynamically.
+        :param padding: Padding between key (work horizontally as vertically).
         :param allowUpperCase: Boolean flag that indicates usage of upper case switching key.
         :param allowSpecialChars: Boolean flag that indicates usage of special char switching key.
         """
         self.rows = []
         self.key_size = key_size
+        self.padding = padding
         i = 0
         for model_row in model:
             row = VKeyRow()
@@ -234,31 +233,30 @@ class VKeyboardLayout(object):
             self.rows.append(row)
             i += 1
 
-    def configure_bound(self, surface_size, padding):
+    def configure_bound(self, surface_size):
         """Compute keyboard bound regarding of this layout.
         
         If key_size is None, then it will compute it regarding of the given surface_size.
 
         :param surface_size: Size of the surface this layout will be rendered on.
-        :param padding: Padding between key (work horizontally as vertically).
         """
         r = len(self.rows)
         max_length = len(max(self.rows, key=len))
         if self.key_size is None:
-            self.key_size = (surface_size[0] - (padding * (max_length + 1))) / max_length
-        height = self.key_size * r + padding * (r + 1)
+            self.key_size = (surface_size[0] - (self.padding * (max_length + 1))) / max_length
+        height = self.key_size * r + self.padding * (r + 1)
         if height >= surface_size[1] / 2:
             logger.warning('Computed keyboard height outbound target surface, reducing key_size to match')
-            self.key_size = ((surface_size[1] / 2) - (padding * (r + 1))) / r
-            height = self.key_size * r + padding * (r + 1)
+            self.key_size = ((surface_size[1] / 2) - (self.padding * (r + 1))) / r
+            height = self.key_size * r + self.padding * (r + 1)
             logger.warning('Normalized key_size to %spx' % self.key_size)
         self.size = (surface_size[0], height)
         self.position = (0, surface_size[1] - self.size[1])
-        y = self.position[1] + padding
+        y = self.position[1] + self.padding
         for row in self.rows:
             # TODO : Center row.
-            row.set_size(y, self.key_size, padding)
-            y += padding + self.key_size
+            row.set_size(y, self.key_size, self.padding)
+            y += self.padding + self.key_size
         
     def get_key_at(self, position):
         """Retrieves if any key is located at the given position
@@ -294,7 +292,7 @@ class VKeyboard(object):
         self.renderer = renderer
         self.buffer = ''
         self.state = 0
-        layout.configure_bound(surface.get_size(), renderer.padding)
+        layout.configure_bound(surface.get_size())
 
     def enable(self):
         """ Sets this keyboard as active. """

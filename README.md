@@ -26,7 +26,7 @@ keyboard.draw()
 
 ## Event managment
 
-A ``VKeyboard`` object handle the following pygame event :
+A ``VKeyboard`` object handles the following pygame event :
 
 - **MOUSEBUTTONDOWN**
 - **MOUSEBUTTONUP**
@@ -48,10 +48,10 @@ through the keyboard text consumer function.
 
 The keyboard layout is the model that indicates keys are displayed and how they are dispatched
 across the keyboard space. It consists in a ``VKeyboardLayout`` object which is built using list of string,
-each string corresponding to a keyboard key row. ``VkeyboardLayout`` constructor is defined as following :
+each string corresponding to a keyboard key row. ``VkeyboardLayout`` constructor signature is defined as following :
 
 ```python
-def __init__(self, model, key_size=None, allow_uppercase=True, allow_special_chars=True)
+def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True)
 ```
 
 If the **key_size** parameter is not provided, it will be computed dynamically regarding of the target
@@ -78,9 +78,7 @@ renderer = VKeyboardRenderer(
     # Key background color (one per state, 0 for released, 1 for pressed).
     ((255, 255, 255), (0, 0, 0)),
     # Text color for key (one per state as for the key background).
-    ((0, 0, 0), (255, 255, 255)),
-    # Padding in pixel between two keys.
-    5
+    ((0, 0, 0), (255, 255, 255))
 )
 ```
 
