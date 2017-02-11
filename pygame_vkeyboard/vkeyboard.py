@@ -88,9 +88,9 @@ class VKeyboardRenderer(object):
 
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
-    pygame.font.SysFont('arial', 20),
+    pygame.font.SysFont('arial', 30),
     (50, 50, 50),
-    ((255, 255, 255), (0, 0, 0)),
+    ((100, 100, 100), (0, 0, 0)),
     ((0, 0, 0), (255, 255, 255))
 )
 
@@ -323,9 +323,7 @@ class VKeyboard(object):
                 if key is not None:
                     self.on_key_down(key)
             elif event.type == MOUSEBUTTONUP:
-                key = self.layout.get_key_at(pygame.mouse.get_pos())
-                if key is not None:
-                    self.on_key_up(key)
+                self.on_key_up()
             elif event.type == KEYDOWN:
                 value = pygame.key.name(event.key)
                 # TODO : Find from layout (consider checking layout key space ?)
@@ -348,12 +346,14 @@ class VKeyboard(object):
         :param key: 
         """
         self.set_key_state(key, 1)
+        self.last_pressed = key
 
-    def on_key_up(self, key):
+    def on_key_up(self):
         """
         
         :param key: 
         """
-        self.buffer = key.update_buffer(self.buffer)
-        self.text_consumer(self.buffer)
-        self.set_key_state(key, 0)
+        if (self.last_pressed is not None):
+            self.buffer = self.last_pressed.update_buffer(self.buffer)
+            self.text_consumer(self.buffer)
+            self.set_key_state(self.last_pressed, 0)
