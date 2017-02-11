@@ -81,8 +81,10 @@ class VKeyboardRenderer(object):
         :param key: Target key to be drawn.
         """
         pygame.draw.rect(surface, self.key_background_color[key.state], key.position + (key.size, key.size))
-        # TODO : Center key into cell.
-        return surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), key.position)
+        size = self.font.size(key.value)
+        x = key.position[0] + ((key.size - size[0]) / 2)
+        y = key.position[1] + ((key.size - size[1]) / 2)
+        return surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), (x, y))
 
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
