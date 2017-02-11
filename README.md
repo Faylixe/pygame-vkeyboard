@@ -26,14 +26,14 @@ keyboard.draw()
 
 ## Event managment
 
-A ``VKeyboard`` handle the following pygame event :
+A ``VKeyboard`` object handle the following pygame event :
 
 - **MOUSEBUTTONDOWN**
 - **MOUSEBUTTONUP**
 - **KEYDOWN**
 - **KEYUP**
 
-In order to process those event, keyboard instance event handling method should be called like in the following example:
+In order to process those events, keyboard instance event handling method should be called like in the following example:
 
 ```python
 for event in pygame.event.get():
@@ -46,8 +46,8 @@ through the keyboard text consumer function.
 
 ## Customize layout 
 
-The keyboard layout is the keyboard model that indicates which key is displayed and how they are dispatched
-across the keyboard space. It consists in a ``VKeyboardLayout`` object which is built using list of string
+The keyboard layout is the model that indicates keys are displayed and how they are dispatched
+across the keyboard space. It consists in a ``VKeyboardLayout`` object which is built using list of string,
 each string corresponding to a keyboard key row. ``VkeyboardLayout`` constructor is defined as following :
 
 ```python
@@ -62,9 +62,7 @@ In order to only display a numerical ``Vkeyboard`` for example, you can use a cu
 ```python
 model = ['123', '456', '789', '0']
 layout = VKeyboardLayout(model)
-````
-It will dispatch
-
+```
 
 ## Custom rendering using VKeyboardRenderer
 
