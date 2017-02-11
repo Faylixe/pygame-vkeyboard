@@ -294,12 +294,16 @@ class VKeyRow(object):
         self.y = -1
         self.height = 0
 
-    def add_key(self, key):
+    def add_key(self, key, first=False):
         """Adds the given key to this row.
 
         :param key: Key to be added to this row.
+        :param first: BOolean flag that indicates if key is added at the beginning or at the end.
         """
-        self.keys.append(key)
+        if first:
+            self.keys = [key] + self.keys
+        else:
+            self.keys.append(key)
 
     def set_size(self, y, size, padding):
         """Row size setter.
@@ -368,33 +372,50 @@ class VKeyboardLayout(object):
         :param padding: Padding between key (work horizontally as vertically).
         :param allowUpperCase: Boolean flag that indicates usage of upper case switching key.
         :param allowSpecialChars: Boolean flag that indicates usage of special char switching key.
+        :param allowSpace: Boolean flag that indicates usage of space bar.
         """
         self.rows = []
         self.key_size = key_size
         self.padding = padding
+        self.allow_space = allow_space
+        self.allow_uppercase = allow_uppercase
+        self.allow_special_chars = allow_special_chars
         for model_row in model:
             row = VKeyRow()
             for value in model_row:
                 row.add_key(VKey(value))
             self.rows.append(row)
+
+    def configure_specials_key(self, keyboard):
+        """Configures specials key if needed.
+
+        :param allowUpperCase: Boolean flag that indicates usage of upper case switching key.
+        :param allowSpecialChars: Boolean flag that indicates usage of special char switching key.
+        :param allowSpace: Boolean flag that indicates usage of space bar.
+        """
         special_row = VKeyRow()
+        max_length = len(max(self.rows, key=len))
+        i = len(self.rows) - 1
+        current_row = self.rows[i]
+        special_keys = [VBackKey()]
+        if self.allow_uppercase: special_keys.append(VUppercaseKey())
+        if self.allow_special_chars: special_keys.append(VSpecialCharKey())
+        while len(special_keys) > 0:
+            first = False
+            while len(special_keys) > 0 and len(current_row) < max_length:
+                current_row.add_key(special_keys.pop(0), first=first)
+                first = not left
+            if i > 0:
+                i -= 1
+                current_row = self.rows[i]
         if allow_space:
             special_row.add_key(VSpaceKey())
-        # TODO : Special key layouting.
-        """i = len(self.rows) - 1
-        current_row = self.rows[i]
-        max_length = len(max(self.rows, key=len))
-
-        last_row 
-        if (len(last_row) < max_length):
-
-        special_row.add_key(VBackKey())
-        if allow_uppercase:
-            special_row.add_key(VKey('MAJ')) # Majlock.
-        if allow_special_chars:
-            special_row.add_key(VKey('123')) # Special chars."""
+        first = True
+        # Adding left to the special bar.
+        while len(special_keys) > 0:
+            special_row.add_key(special_keys.pop(0), first=first)
+            first = not left
         
-
     def configure_bound(self, surface_size):
         """Compute keyboard bound regarding of this layout.
         
@@ -468,6 +489,7 @@ class VKeyboard(object):
         """
         self.previous_layout = self.layout
         self.layout = layout
+        layout.configure_specials_key(self)
         layout.configure_bound(self.surface.get_size())
         self.invalidate()
 
