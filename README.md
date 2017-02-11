@@ -11,7 +11,7 @@ from pygame_vkeyboard import VKeyboard
 
 # Initializes your window object or surface your want
 # vkeyboard to be displayed on top of.
-window = ... 
+surface = ... 
 
 def consume(text):
     """ """
@@ -46,7 +46,25 @@ through the keyboard text consumer function.
 
 ## Customize layout 
 
-Layout.
+The keyboard layout is the keyboard model that indicates which key is displayed and how they are dispatched
+across the keyboard space. It consists in a ``VKeyboardLayout`` object which is built using list of string
+each string corresponding to a keyboard key row. ``VkeyboardLayout`` constructor is defined as following :
+
+```python
+def __init__(self, model, key_size=None, allow_uppercase=True, allow_special_chars=True)
+```
+
+If the **key_size** parameter is not provided, it will be computed dynamically regarding of the target
+surface the keyboard will be rendered into.
+
+In order to only display a numerical ``Vkeyboard`` for example, you can use a custom layout like this :
+
+```python
+model = ['123', '456', '789', '0']
+layout = VKeyboardLayout(model)
+````
+It will dispatch
+
 
 ## Custom rendering using VKeyboardRenderer
 
@@ -71,4 +89,4 @@ renderer = VKeyboardRenderer(
 You can also create your own renderer. It simple consists in two methods :
 
 - **drawBackground(surface, position, size)**: Draws the background of the keyboard.
-- **drawKey(surface, key)**: Draws the given ``VKey``object.
+- **drawKey(surface, key)**: Draws the given ``VKey`` object.

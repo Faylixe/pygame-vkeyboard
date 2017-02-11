@@ -1,11 +1,38 @@
 #!/usr/bin/python
 
-""" Module doc. """
+"""Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
+
+``VKeyboard`` only require a pygame surface to be displayed on and a text consumer function, as in the following example :
+
+```python
+from pygame_vkeyboard import VKeyboard
+
+# Initializes your window object or surface your want
+# vkeyboard to be displayed on top of.
+surface = ... 
+
+def consume(text):
+    """ """
+    print('Current text : %s' % text)
+
+# Initializes and activates vkeyboard
+layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
+keyboard = VKeyboard(window, consumer, layout)
+keyboard.enable()
+keyboard.draw()
+```
+"""
+
+import logging
 
 import pygame
 from pygame.locals import *
 
 pygame.font.init()
+
+# Configure logger.
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 
 class VKeyboardRenderer(object):
     """A VKeyboardRenderer is in charge of keyboard rendering.
@@ -60,7 +87,7 @@ class VKeyboardRenderer(object):
         return surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), key.position)
 
 """ Default style implementation. """
-VKeyboardRenderer.DEFAULT = VKeyboardStyle(
+VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     pygame.font.SysFont('arial', 20),
     (50, 50, 50),
     ((255, 255, 255), (0, 0, 0)),
@@ -215,18 +242,24 @@ class VKeyboardLayout(object):
         :param surface_size: Size of the surface this layout will be rendered on.
         :param padding: Padding between key (work horizontally as vertically).
         """
+        r = len(self.rows)
+        max_length = len(max(self.rows, key=len))
         if self.key_size is None:
-            max_length = len(max(self.rows, key=len))
             self.key_size = (surface_size[0] - (padding * (max_length + 1))) / max_length
-        height = self.key_size * len(self.rows) + padding * (len(self.rows) + 1)
+        height = self.key_size * r + padding * (r + 1)
+        if height >= surface_size[1] / 2:
+            logger.warning('Computed keyboard height outbound target surface, reducing key_size to match')
+            self.key_size = ((surface_size[1] / 2) - (padding * (r + 1))) / r
+            height = self.key_size * r + padding * (r + 1)
+            logger.warning('Normalized key_size to %spx' % self.key_size)
         self.size = (surface_size[0], height)
         self.position = (0, surface_size[1] - self.size[1])
-        # TODO : Check if the size do not outbound the target surface and warn ?
         y = self.position[1] + padding
         for row in self.rows:
+            # TODO : Center row.
             row.set_size(y, self.key_size, padding)
             y += padding + self.key_size
-
+        
     def get_key_at(self, position):
         """Retrieves if any key is located at the given position
         
@@ -261,7 +294,7 @@ class VKeyboard(object):
         self.renderer = renderer
         self.buffer = ''
         self.state = 0
-        layout.configure_bound(surface.get_size(), style.padding)
+        layout.configure_bound(surface.get_size(), renderer.padding)
 
     def enable(self):
         """ Sets this keyboard as active. """
@@ -286,10 +319,11 @@ class VKeyboard(object):
         """
         if self.state > 0:
             if event.type == MOUSEBUTTONDOWN:
-                key = self.layout.get_key_at(position)
+                key = self.layout.get_key_at(pygame.mouse.get_pos())
                 if key is not None:
+                    self.on_key_down(key)
             elif event.type == MOUSEBUTTONUP:
-                key = self.layout.get_key_at(position)
+                key = self.layout.get_key_at(pygame.mouse.get_pos())
                 if key is not None:
                     self.on_key_up(key)
             elif event.type == KEYDOWN:
