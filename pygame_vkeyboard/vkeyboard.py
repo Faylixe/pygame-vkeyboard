@@ -72,6 +72,25 @@ class VKeyboardRenderer(object):
     def draw_key(self, surface, key):
         """Default drawing method for key. 
 
+        To document.
+
+        :param surface: Surface background should be drawn in.
+        :param key: Target key to be drawn.
+        """
+        if isinstance(key, VSpaceKey):
+            self.draw_space_key(surface, key)
+        elif isinstance(key, VBackKey):
+            self.draw_back_key(surface, key)
+        elif isinstance(key, VUppercaseKey):
+            self.draw_uppercase_key(surface, key)
+        elif isinstance(key, VSpecialCharKey):
+            self.draw_special_char_key(surface, key)
+        else:
+            self.draw_character_key(surface, key):
+    
+    def draw_character_key(self, surface, key):
+        """Default drawing method for key. 
+
         Key is drawn as a simple rectangle filled using this
         cell style background color attribute. Key value is printed
         into drawn cell using internal font.
@@ -84,6 +103,54 @@ class VKeyboardRenderer(object):
         x = key.position[0] + ((key.size - size[0]) / 2)
         y = key.position[1] + ((key.size - size[1]) / 2)
         return surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), (x, y))
+
+    def draw_space_key(self, surface, space):
+        """Default drawing method for key. 
+
+        Key is drawn as a simple rectangle filled using this
+        cell style background color attribute. Key value is printed
+        into drawn cell using internal font.
+
+        :param surface: Surface background should be drawn in.
+        :param key: Target key to be drawn.
+        """
+        pass
+    
+    def draw_back_key(self, surface, back):
+        """Default drawing method for key. 
+
+        Key is drawn as a simple rectangle filled using this
+        cell style background color attribute. Key value is printed
+        into drawn cell using internal font.
+
+        :param surface: Surface background should be drawn in.
+        :param key: Target key to be drawn.
+        """
+        pass
+
+    def draw_uppercase_key(self, surface, uppercase):
+        """Default drawing method for key. 
+
+        Key is drawn as a simple rectangle filled using this
+        cell style background color attribute. Key value is printed
+        into drawn cell using internal font.
+
+        :param surface: Surface background should be drawn in.
+        :param key: Target key to be drawn.
+        """
+        pass
+    
+    def draw_special_char_key(self, surface, uppercase):
+        """Default drawing method for key. 
+
+        Key is drawn as a simple rectangle filled using this
+        cell style background color attribute. Key value is printed
+        into drawn cell using internal font.
+
+        :param surface: Surface background should be drawn in.
+        :param key: Target key to be drawn.
+        """
+        pass
 
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
@@ -130,6 +197,67 @@ class VKey(object):
         :returns: Updated buffer value.
         """
         return buffer + self.value
+
+class VSpaceKey(VKey):
+    """ """
+
+    """ """
+    LABEL = 'space'
+
+    def __init__(self, renderer):
+        """
+        
+        :param renderer:
+        """
+        VKey.__init__(self, LABEL)
+        self.min_size = renderer.font.size(LABEL)
+    
+    def update_buffer(self, buffer):
+        """Text update method. Adds space to the given buffer.
+
+        :param buffer: Buffer to be updated.
+        :returns: Updated buffer value.
+        """
+        return buffer + ' '
+
+class VBackKey(VKey):
+    """ """
+
+    def __init__(self):
+        pass
+    
+    def update_buffer(self, buffer):
+        """Text update method. Adds space to the given buffer.
+
+        :param buffer: Buffer to be updated.
+        :returns: Updated buffer value.
+        """
+        return buffer[:-1]
+
+class VLayoutKey(VKey):
+    """
+    """
+    
+    def __init__(self, layout):
+        pass
+
+    def update_buffer(self, buffer):
+        """Text update method. Adds space to the given buffer.
+
+        :param buffer: Buffer to be updated.
+        :returns: Updated buffer value.
+        """
+        return buffer
+
+class VUppercaseKey(VLayoutKey):
+
+    def __init__(self):
+        pass
+
+class VSpecialCharKey(VLayoutKey):
+
+    def __init__(self):
+        pass
 
 class VKeyRow(object):
     """A VKeyRow defines a keyboard row which is composed of a list of VKey.
@@ -211,7 +339,7 @@ class VKeyboardLayout(object):
 
     # TODO : Insert special characters layout which include number.
 
-    def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True):
+    def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True, allow_space=True):
         """Default constructor. Initializes layout rows.
         
         :param model: Layout model to use.
@@ -223,16 +351,28 @@ class VKeyboardLayout(object):
         self.rows = []
         self.key_size = key_size
         self.padding = padding
-        i = 0
         for model_row in model:
             row = VKeyRow()
-            if i == 0: row.add_key(VKey('<-')) # Back key.
-            elif i == 1 and allow_uppercase: row.add_key(VKey('MAJ')) # Majlock.
-            elif i == 2 and allow_special_chars: row.add_key(VKey('123')) # Special chars.
             for value in model_row:
                 row.add_key(VKey(value))
             self.rows.append(row)
-            i += 1
+        special_row = VKeyRow()
+        if allow_space:
+            special_row.add_key(VSpaceKey())
+        # Check for inserting special key into last row.
+        i = len(self.rows) - 1
+        current_row = self.rows[i]
+        max_length = len(max(self.rows, key=len))
+
+        last_row 
+        if (len(last_row) < max_length):
+
+        special_row.add_key(VBackKey())
+        if allow_uppercase:
+            special_row.add_key(VKey('MAJ')) # Majlock.
+        if allow_special_chars:
+            special_row.add_key(VKey('123')) # Special chars.
+        
 
     def configure_bound(self, surface_size):
         """Compute keyboard bound regarding of this layout.
