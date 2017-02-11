@@ -151,7 +151,7 @@ class VKeyboardRenderer(object):
         :param key: Target key to be drawn.
         """
         pass
-
+        
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     pygame.font.SysFont('arial', 30),
@@ -199,15 +199,15 @@ class VKey(object):
         return buffer + self.value
 
 class VSpaceKey(VKey):
-    """ """
+    """ Custom key for spacebar. """
 
-    """ """
+    """ Space bar label instance. """
     LABEL = 'space'
 
     def __init__(self, renderer):
-        """
+        """Default constructor.
         
-        :param renderer:
+        :param renderer: Renderer instance to use for computing min width.
         """
         VKey.__init__(self, LABEL)
         self.min_size = renderer.font.size(LABEL)
@@ -221,43 +221,63 @@ class VSpaceKey(VKey):
         return buffer + ' '
 
 class VBackKey(VKey):
-    """ """
+    """ Custom key for back. """
+
+    """ Back key label instance. """
+    LABEL = '<-'
 
     def __init__(self):
-        pass
+        """ Default constructor. """
+        VKey.__init__(self, LABEL)
     
     def update_buffer(self, buffer):
-        """Text update method. Adds space to the given buffer.
+        """Text update method. Removes last character.
 
         :param buffer: Buffer to be updated.
         :returns: Updated buffer value.
         """
         return buffer[:-1]
 
-class VLayoutKey(VKey):
-    """
+class VActionKey(VKey):
+    """A VActionKey is a key that trigger and action
+    rather than updating the buffer when pressed.
     """
     
-    def __init__(self, layout):
-        pass
+    def __init__(self, action):
+        """Default constructor.
+
+        :param action: Delegate action called when this key is pressed.
+        """
+        self.action = action
 
     def update_buffer(self, buffer):
-        """Text update method. Adds space to the given buffer.
+        """Do not update text but trigger the delegate action.
 
-        :param buffer: Buffer to be updated.
-        :returns: Updated buffer value.
+        :param buffer: Not used, just to match parent interface.
+        :returns: Buffer provided as parameter.
         """
+        self.action()
         return buffer
 
-class VUppercaseKey(VLayoutKey):
+class VUppercaseKey(VActionKey):
+    """ Action key for the uppercase switch. """
 
-    def __init__(self):
-        pass
+    def __init__(self, keyboard):
+        """ Default constructor.
 
-class VSpecialCharKey(VLayoutKey):
+        :param keyboard: Keyboard to trigger on_uppercase() when pressed.
+        """
+        VActionKey.__init__(self, lambda: keyboard.on_uppercase())
 
-    def __init__(self):
-        pass
+class VSpecialCharKey(VActionKey):
+    """ Action key for the special char switch. """
+
+    def __init__(self, keyboard):
+        """ Default constructor.
+
+        :param keyboard: Keyboard to trigger on_special_char() when pressed.
+        """
+        VActionKey.__init__(self, lambda: keyboard.on_special_char())
 
 class VKeyRow(object):
     """A VKeyRow defines a keyboard row which is composed of a list of VKey.
@@ -359,8 +379,8 @@ class VKeyboardLayout(object):
         special_row = VKeyRow()
         if allow_space:
             special_row.add_key(VSpaceKey())
-        # Check for inserting special key into last row.
-        i = len(self.rows) - 1
+        # TODO : Special key layouting.
+        """i = len(self.rows) - 1
         current_row = self.rows[i]
         max_length = len(max(self.rows, key=len))
 
@@ -371,7 +391,7 @@ class VKeyboardLayout(object):
         if allow_uppercase:
             special_row.add_key(VKey('MAJ')) # Majlock.
         if allow_special_chars:
-            special_row.add_key(VKey('123')) # Special chars.
+            special_row.add_key(VKey('123')) # Special chars."""
         
 
     def configure_bound(self, surface_size):
@@ -429,19 +449,36 @@ class VKeyboard(object):
         """
         self.surface = surface
         self.text_consumer = text_consumer
-        self.layout = layout
         self.renderer = renderer
         self.buffer = ''
         self.state = 0
-        layout.configure_bound(surface.get_size())
+        self.set_layout(layout)
+
+    def invalidate(self):
+        """ """
+        # TODO : Reset all key state.
+        self.draw()
+
+    def set_layout(self, layout):
+        """Sets the layout this keyboard work with.
+        Keyboard is invalidate by this action and redraw itself.
+        
+        :param layout: Layout to set.
+        """
+        self.previous_layout = self.layout
+        self.layout = layout
+        layout.configure_bound(self.surface.get_size())
+        self.invalidate()
 
     def enable(self):
         """ Sets this keyboard as active. """
         self.state = 1
+        self.invalidate()
     
     def disable(self):
         """ Sets this keyboard as non active. """
         self.state = 0
+        self.invalidate()
 
     def draw(self):
         """ Draw the virtual keyboard into the delegate surface object if enabled. """
@@ -450,6 +487,16 @@ class VKeyboard(object):
             for row in self.layout.rows:
                 for key in row.keys:
                     self.renderer.draw_key(self.surface, key)
+
+    def on_uppercase(self):
+        """ Uppercase key press handler. """
+        # TODO : Switch current layout to uppercase.
+        self.invalidate()
+
+    def on_special_char(self):
+        """ Special char key press handler. """
+        # TODO : Update layout with special char layout.
+        self.invalidate()
 
     def on_event(self, event):
         """Pygame event processing callback method.
