@@ -7,41 +7,21 @@ from pygame.locals import *
 from pygame_vkeyboard import *
 
 def consumer(text):
-    """ Simple text consumer. """
     print(repr('Current text state: %s' % text))
 
 WHITE = (255, 255, 255)
 BACKGROUND = (0, 0, 0, 150)
 FONT = pygame.font.SysFont('arial', 40)
 
-class TransparentRenderer(object):
-    """
-    """
-        
+
+class TransparentRenderer(VKeyboardRenderer):
+
     def draw_background(self, surface, position, size):
-        """Default drawing method for background.
-
-        Background is drawn as a simple rectangle filled using this
-        style background color attribute.
-
-        :param surface: Surface background should be drawn in.
-        :param position: Surface relative position the keyboard should be drawn at.
-        :param size: Expected size of the drawn keyboard.
-        """
-        pygame.draw.rect(surface, BACKGROUND, position + size)
+        pygame.draw.rect(surface, (0, 0, 0, 150), position + size)
     
-    def draw_key(self, surface, key):
-        """Default drawing method for key. 
-
-        Key is drawn as a simple rectangle filled using this
-        cell style background color attribute. Key value is printed
-        into drawn cell using internal font.
-
-        :param surface: Surface background should be drawn in.
-        :param key: Target key to be drawn.
-        """
+    def draw_character_key(self, surface, key, special=False):
         pygame.draw.rect(surface, WHITE, key.position + (key.size, key.size), 1)
-        return surface.blit(FONT.render(key.value, 1, WHITE, None), key.position)
+        surface.blit(FONT.render(key.value, 1, WHITE, None), key.position)
 
 if __name__ == "__main__":
     pygame.init()

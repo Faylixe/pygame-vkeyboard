@@ -84,6 +84,8 @@ renderer = VKeyboardRenderer(
 )
 ```
 
+Please note that the default renderer implementation require a unicode font.
+
 You can also create your own renderer. Just override ``VKeyboardRenderer``class and override following methods :
         
 - **draw_background(surface, position, size)**: Draws the background of the keyboard.
@@ -92,3 +94,8 @@ You can also create your own renderer. Just override ``VKeyboardRenderer``class 
 - **draw_back_key(surface, key)**: Draws back key.
 - **draw_uppercase_key(surface, key)**: Draw uppercase switch key.
 - **draw_special_char_key(surface, key)**: Draw special character switch key.
+
+## Contributing
+
+If you develop you own renderer please share it ! I will keep a collection of rendering class in this repository.
+Don't hesitate to report bug, feedback, suggestion into the repository issues section.

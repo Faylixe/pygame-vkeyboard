@@ -7,7 +7,6 @@ from pygame.locals import *
 from pygame_vkeyboard import *
 
 def consumer(text):
-    """ Simple text consumer. """
     print(repr('Current text state: %s' % text))
 
 if __name__ == "__main__":
