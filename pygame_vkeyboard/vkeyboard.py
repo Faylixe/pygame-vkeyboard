@@ -25,6 +25,7 @@ keyboard.draw()
 
 import logging
 import pygame
+from os.path import join, dirname
 from pygame.locals import *
 
 pygame.font.init()
@@ -139,10 +140,10 @@ class VKeyboardRenderer(object):
         :param key: Target key to be drawn.
         """
         self.draw_character_key(surface, special)
-        
+
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
-    pygame.font.SysFont('arial', 30),
+    pygame.font.Font(join(dirname(__file__), 'DejaVuSans.ttf'), 30),
     (50, 50, 50),
     ((100, 100, 100), (0, 0, 0)),
     ((0, 0, 0), (255, 255, 255))
