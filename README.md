@@ -13,8 +13,7 @@ from pygame_vkeyboard import *
 # vkeyboard to be displayed on top of.
 surface = ... 
 
-def consume(text):
-    """ """
+def consumer(text):
     print('Current text : %s' % text)
 
 # Initializes and activates vkeyboard

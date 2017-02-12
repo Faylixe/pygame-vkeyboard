@@ -298,23 +298,23 @@ class VKeyRow(object):
         else:
             self.keys.append(key)
 
-    def set_size(self, y, size, padding):
+    def set_size(self, position, size, padding):
         """Row size setter.
 
         The size correspond to the row height, since the row width is constraint
         to the surface width the associated keyboard belongs. Once size is settled,
         the size for each child keys is associated.
         
-        :param y:
-        :param size:
-        :param padding:
+        :param position: Position of this row.
+        :param size: Size of the row (height)
+        :param padding: Padding between key.
         """
         self.height = size
-        self.y = y
-        x = padding
+        self.position = position
+        x = position[0]
         for key in self.keys:
             key.size = size
-            key.position = (x, y)
+            key.position = (x, position[1])
             x += padding + size
 
     def __contains__(self, position):
@@ -323,7 +323,7 @@ class VKeyRow(object):
         :param position: Position to check againt this row.
         :returns: True if the given position collide this row, False otherwise.
         """
-        return position[1] >= self.y and position[1] <= self.y + self.height
+        return position[1] >= self.position[1] and position[1] <= self.position[1] + self.height
 
     def __len__(self):
         """len() operator overload.
@@ -379,6 +379,9 @@ class VKeyboardLayout(object):
             for value in model_row:
                 row.add_key(VKey(value))
             self.rows.append(row)
+        self.max_length = len(max(self.rows, key=len))
+        if self.max_length == 0:
+            raise ValueError('Empty layout model provided')
 
     def configure_specials_key(self, keyboard):
         """Configures specials key if needed.
@@ -386,7 +389,7 @@ class VKeyboardLayout(object):
         :param keyboard: 
         """
         special_row = VKeyRow()
-        max_length = len(max(self.rows, key=len))
+        max_length = self.max_length
         i = len(self.rows) - 1
         current_row = self.rows[i]
         special_keys = [VBackKey()]
@@ -409,7 +412,7 @@ class VKeyboardLayout(object):
         while len(special_keys) > 0:
             special_row.add_key(special_keys.pop(0), first=first)
             first = not first
-        
+
     def configure_bound(self, surface_size):
         """Compute keyboard bound regarding of this layout.
         
@@ -419,9 +422,7 @@ class VKeyboardLayout(object):
         :raise ValueError: If the layout model is empty.
         """
         r = len(self.rows)
-        max_length = len(max(self.rows, key=len))
-        if max_length == 0:
-            raise ValueError('Empty layout model provided')
+        max_length = self.max_length
         if self.key_size is None:
             self.key_size = (surface_size[0] - (self.padding * (max_length + 1))) / max_length
         height = self.key_size * r + self.padding * (r + 1)
@@ -442,9 +443,12 @@ class VKeyboardLayout(object):
         self.size = size
         self.position = (0, surface_size[1] - self.size[1])
         y = self.position[1] + self.padding
+        max_length = self.max_length
         for row in self.rows:
-            # TODO : Center row.
-            row.set_size(y, self.key_size, self.padding)
+            r = len(row)
+            width = (r * self.key_size) + ((r + 1) * self.padding)
+            x = (surface_size[0] - width) / 2
+            row.set_size((x, y), self.key_size, self.padding)
             y += self.padding + self.key_size
 
     def invalidate(self):
@@ -515,6 +519,7 @@ class VKeyboard(object):
         self.renderer = renderer
         self.buffer = u''
         self.state = 0
+        self.last_pressed = None
         self.original_layout = layout
         self.original_layout.configure_specials_key(self)
         self.special_char_layout = special_char_layout
