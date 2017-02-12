@@ -19,7 +19,6 @@ def consume(text):
 layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
 keyboard = VKeyboard(window, consumer, layout)
 keyboard.enable()
-keyboard.draw()
 ```
 """
 
@@ -348,7 +347,8 @@ class VKeyboardLayout(object):
     """ Number only layout. """ 
     NUMBER = ['123', '456', '789', '0']
 
-    # TODO : Insert special characters layout which include number.
+    """ """
+    SPECIAL = [''] # TODO : Insert special characters layout which include number.
 
     def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True, allow_space=True):
         """Default constructor. Initializes layout rows.
@@ -424,7 +424,18 @@ class VKeyboardLayout(object):
             # TODO : Center row.
             row.set_size(y, self.key_size, self.padding)
             y += self.padding + self.key_size
-        
+    
+    def set_uppercase(self, uppercase):
+        """
+        """
+        for row in self.rows:
+            for key in row.keys:
+                if type(key) == VKey:
+                    if uppercase:
+                        key.value = key.value.upper()
+                    else:
+                        key.value = key.value.lower()
+
     def get_key_at(self, position):
         """Retrieves if any key is located at the given position
         
@@ -445,12 +456,13 @@ class VKeyboard(object):
     and a VKeyboardRenderer which is in charge of drawing keyboard component to screen. 
     """
 
-    def __init__(self, surface, text_consumer, layout, renderer=VKeyboardRenderer.DEFAULT):
+    def __init__(self, surface, text_consumer, layout, special_char_layout=VKeyboardLayout(VKeyboardLayout.SPECIAL), renderer=VKeyboardRenderer.DEFAULT):
         """Default constructor.
         
         :param surface: Surface this keyboard will be displayed at.
         :param text_consumer: Consumer that process text for each update.
         :param layout: Layout this keyboard will use.
+        :param special_char_layout: Alternative layout to use, using VKeyboardLayout.SPECIAL if not specified.
         :param renderer: Keyboard renderer instance, using VKeyboardStyle.DEFAULT if not specified.
         """
         self.surface = surface
@@ -458,8 +470,10 @@ class VKeyboard(object):
         self.renderer = renderer
         self.buffer = ''
         self.state = 0
-        self.layout = None
+        self.special_char_layout = special_char_layout
         self.set_layout(layout)
+        self.uppercase = False
+        self.special_char = False
 
     def invalidate(self):
         """ """
@@ -472,7 +486,6 @@ class VKeyboard(object):
         
         :param layout: Layout to set.
         """
-        self.previous_layout = self.layout
         self.layout = layout
         layout.configure_specials_key(self)
         layout.configure_bound(self.surface.get_size())
@@ -498,12 +511,17 @@ class VKeyboard(object):
 
     def on_uppercase(self):
         """ Uppercase key press handler. """
-        # TODO : Switch current layout to uppercase.
+        self.uppercase = not self.uppercase
+        self.layout.set_uppercase(self.uppercase)
         self.invalidate()
 
     def on_special_char(self):
         """ Special char key press handler. """
-        # TODO : Update layout with special char layout.
+        self.special_char = not self.special_char
+        if self.special_char:
+            self.set_layout(self.special_char_layout)
+        else:
+            self.set_layout(self.layout)
         self.invalidate()
 
     def on_event(self, event):
