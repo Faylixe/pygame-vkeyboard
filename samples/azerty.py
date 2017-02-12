@@ -8,7 +8,7 @@ from pygame_vkeyboard import *
 
 def consumer(text):
     """ Simple text consumer. """
-    print('Current text state: %s' % text)
+    print(repr('Current text state: %s' % text))
 
 if __name__ == "__main__":
     pygame.init()
@@ -16,7 +16,6 @@ if __name__ == "__main__":
     layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
     keyboard = VKeyboard(window, consumer, layout)
     keyboard.enable()
-    keyboard.draw()
     running = True
     while running:
         pygame.display.flip()

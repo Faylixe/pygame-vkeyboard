@@ -8,16 +8,15 @@ from pygame_vkeyboard import *
 
 def consumer(text):
     """ Simple text consumer. """
-    print('Current number: %s' % text)
+    print(repr('Current text state: %s' % text))
 
 if __name__ == "__main__":
     pygame.init()
     window = pygame.display.set_mode((600, 400))
     model = ['123', '456', '789', '0']
-    layout = VKeyboardLayout(model, allow_uppercase=False, allow_special_chars=False)
+    layout = VKeyboardLayout(model, allow_uppercase=False, allow_special_chars=False, allow_space=False)
     keyboard = VKeyboard(window, consumer, layout)
     keyboard.enable()
-    keyboard.draw()
     running = True
     while running:
         pygame.display.flip()

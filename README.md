@@ -82,7 +82,11 @@ renderer = VKeyboardRenderer(
 )
 ```
 
-You can also create your own renderer. It simple consists in two methods :
-
-- **drawBackground(surface, position, size)**: Draws the background of the keyboard.
-- **drawKey(surface, key)**: Draws the given ``VKey`` object.
+You can also create your own renderer. Just override ``VKeyboardRenderer``class and override following methods :
+        
+- **draw_background(surface, position, size)**: Draws the background of the keyboard.
+- **draw_character_key(surface, key, special=False)**: Draws a key based on character value.
+- **draw_space_key(surface, key)**: Draws space bar.
+- **draw_back_key(surface, key)**: Draws back key.
+- **draw_uppercase_key(surface, key)**: Draw uppercase switch key.
+- **draw_special_char_key(surface, key)**: Draw special character switch key.

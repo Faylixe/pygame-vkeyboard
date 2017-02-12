@@ -8,7 +8,7 @@ from pygame_vkeyboard import *
 
 def consumer(text):
     """ Simple text consumer. """
-    print('Current text state: %s' % text)
+    print(repr('Current text state: %s' % text))
 
 WHITE = (255, 255, 255)
 BACKGROUND = (0, 0, 0, 150)
