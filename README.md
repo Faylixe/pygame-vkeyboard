@@ -51,7 +51,7 @@ across the keyboard space. It consists in a ``VKeyboardLayout`` object which is 
 each string corresponding to a keyboard key row. ``VkeyboardLayout`` constructor signature is defined as following :
 
 ```python
-def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True)
+def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True, allow_space=True)
 ```
 
 If the **key_size** parameter is not provided, it will be computed dynamically regarding of the target
@@ -78,7 +78,9 @@ renderer = VKeyboardRenderer(
     # Key background color (one per state, 0 for released, 1 for pressed).
     ((255, 255, 255), (0, 0, 0)),
     # Text color for key (one per state as for the key background).
-    ((0, 0, 0), (255, 255, 255))
+    ((0, 0, 0), (255, 255, 255)),
+    # (Optional) special key background color.
+    ((255, 255, 255), (0, 0, 0)),
 )
 ```
 
