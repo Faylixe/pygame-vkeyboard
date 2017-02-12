@@ -13,8 +13,7 @@ from pygame_vkeyboard import *
 surface = ... 
 
 def consume(text):
-    """ """
-    print('Current text : %s' % text)
+    print(repr('Current text : %s' % text))
 
 # Initializes and activates vkeyboard
 layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
@@ -149,7 +148,7 @@ class VKeyboardRenderer(object):
 
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
-    pygame.font.Font(join(dirname(__file__), 'DejaVuSans.ttf'), 30),
+    pygame.font.Font(join(dirname(__file__), 'DejaVuSans.ttf'), 25),
     (50, 50, 50),
     ((100, 100, 100), (0, 0, 0)),
     ((0, 0, 0), (255, 255, 255)),
@@ -350,13 +349,13 @@ class VKeyboardLayout(object):
     """
 
     """ Azerty layout. """
-    AZERTY = ['azertyuiop', 'qsdfghjklm', 'wxcvbn']
+    AZERTY = ['1234567890', 'azertyuiop', 'qsdfghjklm', 'wxcvbn']
 
     """ Number only layout. """ 
     NUMBER = ['123', '456', '789', '0']
 
     """ """
-    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?./+', u'<>#@'] # TODO : Insert special characters layout which include number.
+    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?./+<>#', u'@[]{}'] # TODO : Insert special characters layout which include number.
 
     def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True, allow_space=True):
         """Default constructor. Initializes layout rows.
@@ -493,9 +492,18 @@ def synchronizeLayout(primary, secondary, surface_size):
     """
     primary.configure_bound(surface_size)
     secondary.configure_bound(surface_size)
+    # Check for key size.
+    if (primary.key_size < secondary.key_size):
+        logging.warning('Normalizing key size from secondary to primary')
+        secondary.key_size = primary.key_size
+    elif (primary.key_size > secondary.key_size):
+        logging.warning('Normalizing key size from primary to secondary')
+        primary.key_size = secondary.key_size
     if (primary.size[1] > secondary.size[1]):
+        logging.warning('Normalizing layout size from secondary to primary')
         secondary.set_size(primary.size, surface_size)
     elif (primary.size[1] < secondary.size[1]):
+        logging.warning('Normalizing layout size from primary to secondary')
         primary.set_size(secondary.size, surface_size)
 
 class VKeyboard(object):
