@@ -421,7 +421,7 @@ class VKeyboardLayout(object):
     def configure_specials_key(self, keyboard):
         """Configures specials key if needed.
 
-        :param keyboard: 
+        :param keyboard: Keyboard instance this layout belong.
         """
         special_row = VKeyRow()
         max_length = self.max_length
