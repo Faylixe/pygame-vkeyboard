@@ -22,7 +22,6 @@ def consumer(text):
 layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
 keyboard = VKeyboard(surface, consumer, layout)
 keyboard.enable()
-keyboard.draw()
 ```
 
 ## Event managment
