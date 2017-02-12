@@ -136,6 +136,9 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
+        key.value = u'\u21e7' 
+        if key.is_activated():
+            key.value = u'\u21ea'
         self.draw_character_key(surface, key, True)
     
     def draw_special_char_key(self, surface, key):
@@ -144,6 +147,9 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
+        key.value = u'#' 
+        if key.is_activated():
+            key.value = u'Ab'
         self.draw_character_key(surface, key, True)
 
 """ Default style implementation. """
@@ -172,6 +178,13 @@ class VKey(object):
         self.position = (-1, -1)
         self.size = 0
 
+    def set_size(self, size):
+        """Sets the size of this key.
+        
+        :param size: Size of this key.
+        """
+        self.size = size
+
     def is_touched(self, position):
         """Hit detection method.
         
@@ -196,17 +209,21 @@ class VKey(object):
 class VSpaceKey(VKey):
     """ Custom key for spacebar. """
 
-    """ Space bar label instance. """
-    LABEL = 'space'
-
-    def __init__(self, renderer):
+    def __init__(self, length):
         """Default constructor.
         
-        :param renderer: Renderer instance to use for computing min width.
+        :param length: Key length.
         """
-        VKey.__init__(self, VSpaceKey.LABEL)
-        self.min_size = renderer.font.size(VSpaceKey.LABEL)
+        VKey.__init__(self, 'Space')
+        self.length = length
     
+    def set_size(self, size):
+        """Sets the size of this key.
+        
+        :param size: Size of this key.
+        """
+        self.size = (size * self.length)
+
     def update_buffer(self, buffer):
         """Text update method. Adds space to the given buffer.
 
@@ -235,13 +252,15 @@ class VActionKey(VKey):
     rather than updating the buffer when pressed.
     """
     
-    def __init__(self, label, action):
+    def __init__(self, action, state_holder):
         """Default constructor.
 
         :param action: Delegate action called when this key is pressed.
+        :param state_holder: Holder for this key state (activated or not).
         """
-        VKey.__init__(self, label)
+        VKey.__init__(self, '')
         self.action = action
+        self.state_holder = state_holder
 
     def update_buffer(self, buffer):
         """Do not update text but trigger the delegate action.
@@ -260,8 +279,15 @@ class VUppercaseKey(VActionKey):
 
         :param keyboard: Keyboard to trigger on_uppercase() when pressed.
         """
-        VActionKey.__init__(self, u'\u21e7', lambda: keyboard.on_uppercase())
+        VActionKey.__init__(self, lambda: keyboard.on_uppercase(), keyboard)
 
+    def is_activated(self):
+        """Indicates if this key is activated.
+        
+        :returns: True if activated, False otherwise:
+        """
+        return self.state_holder.uppercase
+        
 class VSpecialCharKey(VActionKey):
     """ Action key for the special char switch. """
 
@@ -270,7 +296,14 @@ class VSpecialCharKey(VActionKey):
 
         :param keyboard: Keyboard to trigger on_special_char() when pressed.
         """
-        VActionKey.__init__(self, '123', lambda: keyboard.on_special_char())
+        VActionKey.__init__(self, lambda: keyboard.on_special_char(), keyboard)
+
+    def is_activated(self):
+        """Indicates if this key is activated.
+        
+        :returns: True if activated, False otherwise:
+        """
+        return self.state_holder.special_char
 
 class VKeyRow(object):
     """A VKeyRow defines a keyboard row which is composed of a list of VKey.
@@ -285,6 +318,7 @@ class VKeyRow(object):
         self.keys = []
         self.y = -1
         self.height = 0
+        self.space = None
 
     def add_key(self, key, first=False):
         """Adds the given key to this row.
@@ -296,6 +330,8 @@ class VKeyRow(object):
             self.keys = [key] + self.keys
         else:
             self.keys.append(key)
+        if isinstance(key, VSpaceKey):
+            self.space = key
 
     def set_size(self, position, size, padding):
         """Row size setter.
@@ -312,7 +348,7 @@ class VKeyRow(object):
         self.position = position
         x = position[0]
         for key in self.keys:
-            key.size = size
+            key.set_size(size)
             key.position = (x, position[1])
             x += padding + size
 
@@ -355,7 +391,7 @@ class VKeyboardLayout(object):
     NUMBER = ['123', '456', '789', '0']
 
     """ """
-    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?./+<>#', u'@[]{}'] # TODO : Insert special characters layout which include number.
+    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?.@+<>#', u'[]{}/\\|'] # TODO : Insert special characters layout which include number.
 
     def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True, allow_space=True):
         """Default constructor. Initializes layout rows.
@@ -405,12 +441,15 @@ class VKeyboardLayout(object):
             else:
                 break
         if self.allow_space:
-            special_row.add_key(VSpaceKey(keyboard.renderer))
+            space_length = len(current_row) - len(special_keys)
+            special_row.add_key(VSpaceKey(space_length))
         first = True
         # Adding left to the special bar.
         while len(special_keys) > 0:
             special_row.add_key(special_keys.pop(0), first=first)
             first = not first
+        if len(special_row) > 0:
+            self.rows.append(special_row)
 
     def configure_bound(self, surface_size):
         """Compute keyboard bound regarding of this layout.
@@ -447,6 +486,8 @@ class VKeyboardLayout(object):
             r = len(row)
             width = (r * self.key_size) + ((r + 1) * self.padding)
             x = (surface_size[0] - width) / 2
+            if row.space is not None:
+                x -= ((row.space.length - 1) * self.key_size) / 2
             row.set_size((x, y), self.key_size, self.padding)
             y += self.padding + self.key_size
 
@@ -528,14 +569,14 @@ class VKeyboard(object):
         self.buffer = u''
         self.state = 0
         self.last_pressed = None
+        self.uppercase = False
+        self.special_char = False
         self.original_layout = layout
         self.original_layout.configure_specials_key(self)
         self.special_char_layout = special_char_layout
         self.special_char_layout.configure_specials_key(self)
         synchronizeLayout(self.original_layout, self.special_char_layout, self.surface.get_size())
         self.set_layout(layout)
-        self.uppercase = False
-        self.special_char = False
 
     def invalidate(self):
         """ Invalidates keyboard state, reset layout and redraw. """
@@ -571,7 +612,8 @@ class VKeyboard(object):
     def on_uppercase(self):
         """ Uppercase key press handler. """
         self.uppercase = not self.uppercase
-        self.layout.set_uppercase(self.uppercase)
+        self.original_layout.set_uppercase(self.uppercase)
+        self.special_char_layout.set_uppercase(self.uppercase)
         self.invalidate()
 
     def on_special_char(self):
