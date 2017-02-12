@@ -45,17 +45,19 @@ class VKeyboardRenderer(object):
         A DEFAULT style instance is available as class attribute.
     """
 
-    def __init__(self, font, keyboard_background_color, key_background_color, text_color):
+    def __init__(self, font, keyboard_background_color, key_background_color, text_color, special_key_background_color=None):
         """VKeyboardStyle default constructor. 
         
         :param font: Used font for rendering key.
         :param keyboard_background_color: Background color use for the keyboard.
         :param key_background_color: Tuple of background color for key (one value per state).
         :param text_color: Tuple of key text color (one value per state).
+        :param special_key_background_color: Background color for special key if required.
         """
         self.font = font
         self.keyboard_background_color = keyboard_background_color
         self.key_background_color = key_background_color
+        self.special_key_background_color = special_key_background_color
         self.text_color = text_color
         
     def draw_background(self, surface, position, size):
@@ -73,7 +75,7 @@ class VKeyboardRenderer(object):
     def draw_key(self, surface, key):
         """Default drawing method for key. 
 
-        To document.
+        Draw the key accordingly to it type.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
@@ -89,7 +91,7 @@ class VKeyboardRenderer(object):
         else:
             self.draw_character_key(surface, key)
     
-    def draw_character_key(self, surface, key):
+    def draw_character_key(self, surface, key, special=False):
         """Default drawing method for key. 
 
         Key is drawn as a simple rectangle filled using this
@@ -98,14 +100,18 @@ class VKeyboardRenderer(object):
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
+        :param special: BOolean flag that indicates if the drawn key should use special background color if available.
         """
-        pygame.draw.rect(surface, self.key_background_color[key.state], key.position + (key.size, key.size))
+        background_color = self.key_background_color
+        if special and self.special_key_background_color is not None:
+            background_color = self.special_key_background_color
+        pygame.draw.rect(surface, background_color[key.state], key.position + (key.size, key.size))
         size = self.font.size(key.value)
         x = key.position[0] + ((key.size - size[0]) / 2)
         y = key.position[1] + ((key.size - size[1]) / 2)
         return surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), (x, y))
 
-    def draw_space_key(self, surface, space):
+    def draw_space_key(self, surface, key):
         """Default drawing method space key. 
 
         Key is drawn as a simple rectangle filled using this
@@ -115,38 +121,39 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        self.draw_character_key(surface, space)
+        self.draw_character_key(surface, key, True)
     
-    def draw_back_key(self, surface, back):
+    def draw_back_key(self, surface, key):
         """Default drawing method for back key. Drawn as character key.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        self.draw_character_key(surface, back)
+        self.draw_character_key(surface, key, True)
 
-    def draw_uppercase_key(self, surface, uppercase):
+    def draw_uppercase_key(self, surface, key):
         """Default drawing method for uppercase key. Drawn as character key.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        self.draw_character_key(surface, uppercase)
+        self.draw_character_key(surface, key, True)
     
-    def draw_special_char_key(self, surface, special):
+    def draw_special_char_key(self, surface, key):
         """Default drawing method for special char key. Drawn as character key.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        self.draw_character_key(surface, special)
+        self.draw_character_key(surface, key, True)
 
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     pygame.font.Font(join(dirname(__file__), 'DejaVuSans.ttf'), 30),
     (50, 50, 50),
     ((100, 100, 100), (0, 0, 0)),
-    ((0, 0, 0), (255, 255, 255))
+    ((0, 0, 0), (255, 255, 255)),
+    ((255, 255, 255), (0, 0, 0)),
 )
 
 class VKey(object):
@@ -395,7 +402,6 @@ class VKeyboardLayout(object):
                 current_row = self.rows[i]
             else:
                 break
-
         if self.allow_space:
             special_row.add_key(VSpaceKey(keyboard.renderer))
         first = True
@@ -427,10 +433,11 @@ class VKeyboardLayout(object):
         self.set_size((surface_size[0], height), surface_size)
     
     def set_size(self, size, surface_size):
-        """
+        """Sets the size of this layout, and updates
+        position, and rows accordingly.
 
-        :param size:
-        :param surface_size:
+        :param size: Size of this layout.
+        :param surface_size: Target surface size on which layout will be displayed.
         """
         self.size = size
         self.position = (0, surface_size[1] - self.size[1])
@@ -473,11 +480,12 @@ class VKeyboardLayout(object):
         return None
 
 def synchronizeLayout(primary, secondary, surface_size):
-    """
+    """Synchronizes given layouts by normalizing height by using
+    max height of given layouts to avoid transistion dirty effects.
 
-    :param primary:
-    :param secondary:
-    :param surface_size:
+    :param primary: Primary layout used.
+    :param secondary: Secondary layout used.
+    :param surface_size: Target surface size on which layout will be displayed.
     """
     primary.configure_bound(surface_size)
     secondary.configure_bound(surface_size)
