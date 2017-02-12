@@ -2,6 +2,8 @@
 
 Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
+![Screenshot](https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png)
+
 ## Basic usage 
 
 ``VKeyboard`` only require a pygame surface to be displayed on and a text consumer function, as in the following example :

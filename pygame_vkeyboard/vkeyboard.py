@@ -120,7 +120,7 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        self.draw_character_key(surface, key, True)
+        self.draw_character_key(surface, key, False)
     
     def draw_back_key(self, surface, key):
         """Default drawing method for back key. Drawn as character key.
@@ -155,10 +155,10 @@ class VKeyboardRenderer(object):
 """ Default style implementation. """
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     pygame.font.Font(join(dirname(__file__), 'DejaVuSans.ttf'), 25),
-    (50, 50, 50),
-    ((100, 100, 100), (0, 0, 0)),
-    ((0, 0, 0), (255, 255, 255)),
+    (255, 255, 255),
     ((255, 255, 255), (0, 0, 0)),
+    ((0, 0, 0), (255, 255, 255)),
+    ((180, 180, 180), (0, 0, 0)),
 )
 
 class VKey(object):
