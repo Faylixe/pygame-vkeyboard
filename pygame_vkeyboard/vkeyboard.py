@@ -104,11 +104,11 @@ class VKeyboardRenderer(object):
         background_color = self.key_background_color
         if special and self.special_key_background_color is not None:
             background_color = self.special_key_background_color
-        pygame.draw.rect(surface, background_color[key.state], key.position + (key.size, key.size))
+        pygame.draw.rect(surface, background_color[key.state], key.position + key.size)
         size = self.font.size(key.value)
-        x = key.position[0] + ((key.size - size[0]) / 2)
-        y = key.position[1] + ((key.size - size[1]) / 2)
-        return surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), (x, y))
+        x = key.position[0] + ((key.size[0] - size[0]) / 2)
+        y = key.position[1] + ((key.size[1] - size[1]) / 2)
+        surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), (x, y))
 
     def draw_space_key(self, surface, key):
         """Default drawing method space key. 
@@ -175,15 +175,15 @@ class VKey(object):
         """
         self.state = 0
         self.value = value
-        self.position = (-1, -1)
-        self.size = 0
+        self.position = (0, 0)
+        self.size = (0, 0)
 
     def set_size(self, size):
         """Sets the size of this key.
         
         :param size: Size of this key.
         """
-        self.size = size
+        self.size = (size, size)
 
     def is_touched(self, position):
         """Hit detection method.
@@ -193,7 +193,7 @@ class VKey(object):
         :param position: Event position.
         :returns: True is the given position collide this key, False otherwise.
         """
-        return position[0] >= self.position[0] and position[0] <= self.position[0]+ self.size
+        return position[0] >= self.position[0] and position[0] <= self.position[0]+ self.size[0]
     
     def update_buffer(self, buffer):
         """Text update method.
@@ -222,7 +222,7 @@ class VSpaceKey(VKey):
         
         :param size: Size of this key.
         """
-        self.size = (size * self.length)
+        self.size = (size * self.length, size)
 
     def update_buffer(self, buffer):
         """Text update method. Adds space to the given buffer.
@@ -350,7 +350,7 @@ class VKeyRow(object):
         for key in self.keys:
             key.set_size(size)
             key.position = (x, position[1])
-            x += padding + size
+            x += padding + key.size[0]
 
     def __contains__(self, position):
         """Indicates if the given position collide this row.
