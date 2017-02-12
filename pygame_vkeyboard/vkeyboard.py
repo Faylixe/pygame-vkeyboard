@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# coding: utf-8
 
 """Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
@@ -348,7 +349,7 @@ class VKeyboardLayout(object):
     NUMBER = ['123', '456', '789', '0']
 
     """ """
-    SPECIAL = [''] # TODO : Insert special characters layout which include number.
+    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?./+', u'<>#@'] # TODO : Insert special characters layout which include number.
 
     def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True, allow_space=True):
         """Default constructor. Initializes layout rows.
@@ -392,6 +393,9 @@ class VKeyboardLayout(object):
             if i > 0:
                 i -= 1
                 current_row = self.rows[i]
+            else:
+                break
+
         if self.allow_space:
             special_row.add_key(VSpaceKey(keyboard.renderer))
         first = True
@@ -406,9 +410,12 @@ class VKeyboardLayout(object):
         If key_size is None, then it will compute it regarding of the given surface_size.
 
         :param surface_size: Size of the surface this layout will be rendered on.
+        :raise ValueError: If the layout model is empty.
         """
         r = len(self.rows)
         max_length = len(max(self.rows, key=len))
+        if max_length == 0:
+            raise ValueError('Empty layout model provided')
         if self.key_size is None:
             self.key_size = (surface_size[0] - (self.padding * (max_length + 1))) / max_length
         height = self.key_size * r + self.padding * (r + 1)
@@ -417,14 +424,22 @@ class VKeyboardLayout(object):
             self.key_size = ((surface_size[1] / 2) - (self.padding * (r + 1))) / r
             height = self.key_size * r + self.padding * (r + 1)
             logger.warning('Normalized key_size to %spx' % self.key_size)
-        self.size = (surface_size[0], height)
+        self.set_size((surface_size[0], height), surface_size)
+    
+    def set_size(self, size, surface_size):
+        """
+
+        :param size:
+        :param surface_size:
+        """
+        self.size = size
         self.position = (0, surface_size[1] - self.size[1])
         y = self.position[1] + self.padding
         for row in self.rows:
             # TODO : Center row.
             row.set_size(y, self.key_size, self.padding)
             y += self.padding + self.key_size
-    
+
     def invalidate(self):
         """ Rests all keys states. """
         for row in self.rows:
@@ -457,6 +472,20 @@ class VKeyboardLayout(object):
                         return key
         return None
 
+def synchronizeLayout(primary, secondary, surface_size):
+    """
+
+    :param primary:
+    :param secondary:
+    :param surface_size:
+    """
+    primary.configure_bound(surface_size)
+    secondary.configure_bound(surface_size)
+    if (primary.size[1] > secondary.size[1]):
+        secondary.set_size(primary.size, surface_size)
+    elif (primary.size[1] < secondary.size[1]):
+        primary.set_size(secondary.size, surface_size)
+
 class VKeyboard(object):
     """Virtual Keyboard class.
     
@@ -476,9 +505,13 @@ class VKeyboard(object):
         self.surface = surface
         self.text_consumer = text_consumer
         self.renderer = renderer
-        self.buffer = ''
+        self.buffer = u''
         self.state = 0
+        self.original_layout = layout
+        self.original_layout.configure_specials_key(self)
         self.special_char_layout = special_char_layout
+        self.special_char_layout.configure_specials_key(self)
+        synchronizeLayout(self.original_layout, self.special_char_layout, self.surface.get_size())
         self.set_layout(layout)
         self.uppercase = False
         self.special_char = False
@@ -495,8 +528,6 @@ class VKeyboard(object):
         :param layout: Layout to set.
         """
         self.layout = layout
-        layout.configure_specials_key(self)
-        layout.configure_bound(self.surface.get_size())
         self.invalidate()
 
     def enable(self):
@@ -528,7 +559,7 @@ class VKeyboard(object):
         if self.special_char:
             self.set_layout(self.special_char_layout)
         else:
-            self.set_layout(self.layout)
+            self.set_layout(self.original_layout)
         self.invalidate()
 
     def on_event(self, event):
@@ -570,6 +601,7 @@ class VKeyboard(object):
     def on_key_up(self):
         """ Process key up event by updating buffer and release key. """
         if (self.last_pressed is not None):
+            self.set_key_state(self.last_pressed, 0)
             self.buffer = self.last_pressed.update_buffer(self.buffer)
             self.text_consumer(self.buffer)
-            self.set_key_state(self.last_pressed, 0)
+            self.last_pressed = None
