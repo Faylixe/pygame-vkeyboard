@@ -425,8 +425,16 @@ class VKeyboardLayout(object):
             row.set_size(y, self.key_size, self.padding)
             y += self.padding + self.key_size
     
+    def invalidate(self):
+        """ Rests all keys states. """
+        for row in self.rows:
+            for key in row.keys:
+                key.state = 0
+
     def set_uppercase(self, uppercase):
-        """
+        """Sets layout uppercase state.
+
+        :param uppercase: True if uppercase, False otherwise.
         """
         for row in self.rows:
             for key in row.keys:
@@ -476,8 +484,8 @@ class VKeyboard(object):
         self.special_char = False
 
     def invalidate(self):
-        """ """
-        # TODO : Reset all key state.
+        """ Invalidates keyboard state, reset layout and redraw. """
+        self.layout.invalidate()
         self.draw()
 
     def set_layout(self, layout):
@@ -499,7 +507,6 @@ class VKeyboard(object):
     def disable(self):
         """ Sets this keyboard as non active. """
         self.state = 0
-        self.invalidate()
 
     def draw(self):
         """ Draw the virtual keyboard into the delegate surface object if enabled. """
