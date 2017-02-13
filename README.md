@@ -1,5 +1,7 @@
 # pygame_vkeyboard
 
+[![Latest Version](https://img.shields.io/pypi/v/pygame_vkeyboard.svg)](https://pypi.python.org/pypi/pygame_vkeyboard/)
+
 Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
 ![Screenshot](https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png)
