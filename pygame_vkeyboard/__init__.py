@@ -1,5 +1,3 @@
-#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
-from vkeyboard import VKeyboardRenderer
-from vkeyboard import VKeyboardLayout
-from vkeyboard import VKeyboard
+from .vkeyboard import VKeyboardRenderer, VKeyboardLayout, VKeyboard

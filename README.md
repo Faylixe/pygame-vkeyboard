@@ -6,7 +6,7 @@ Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable
 
 ![Screenshot](https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png)
 
-## Basic usage 
+## Basic usage
 
 ``VKeyboard`` only require a pygame surface to be displayed on and a text consumer function, as in the following example :
 
@@ -15,7 +15,7 @@ from pygame_vkeyboard import *
 
 # Initializes your window object or surface your want
 # vkeyboard to be displayed on top of.
-surface = ... 
+surface = ...
 
 def consumer(text):
     print('Current text : %s' % text)
@@ -46,7 +46,7 @@ for event in pygame.event.get():
 It will update key state accordingly as the keyboard buffer as well. Buffer modification will be notified
 through the keyboard text consumer function.
 
-## Customize layout 
+## Customize layout
 
 The keyboard layout is the model that indicates keys are displayed and how they are dispatched
 across the keyboard space. It consists in a ``VKeyboardLayout`` object which is built using list of string,
@@ -89,13 +89,24 @@ renderer = VKeyboardRenderer(
 Please note that the default renderer implementation require a unicode font.
 
 You can also create your own renderer. Just override ``VKeyboardRenderer``class and override any of the following methods :
-        
+
 - **draw_background(surface, position, size)**: Draws the background of the keyboard.
 - **draw_character_key(surface, key, special=False)**: Draws a key based on character value.
 - **draw_space_key(surface, key)**: Draws space bar.
 - **draw_back_key(surface, key)**: Draws back key.
 - **draw_uppercase_key(surface, key)**: Draw uppercase switch key.
 - **draw_special_char_key(surface, key)**: Draw special character switch key.
+
+## Run examples
+
+Several examples are provided with the **pygame_vkeyboard** library.
+To run the examples, simply execute these commands in a terminal:
+
+```bash
+    $> python -m pygame_vkeyboard.examples.azerty
+    $> python -m pygame_vkeyboard.examples.numeric
+    $> python -m pygame_vkeyboard.examples.renderer
+```
 
 ## Contributing
 
