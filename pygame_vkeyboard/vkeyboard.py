@@ -24,9 +24,6 @@ keyboard.enable()
 import logging
 import pygame
 from os.path import join, dirname
-from pygame.locals import *
-
-pygame.font.init()
 
 # Configure logger.
 logging.basicConfig()
@@ -37,8 +34,8 @@ class VKeyboardRenderer(object):
     """A VKeyboardRenderer is in charge of keyboard rendering.
 
     It handles keyboard rendering properties such as color or padding,
-    and provides two rendering methods : one for the keyboard background
-    and another one the the key rendering.
+    and provides two types of rendering methods : one for the keyboard
+    background and another one the the key rendering.
 
     .. note::
         A DEFAULT style instance is available as class attribute.
@@ -153,6 +150,7 @@ class VKeyboardRenderer(object):
         self.draw_character_key(surface, key, True)
 
 """ Default style implementation. """
+pygame.font.init()
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     pygame.font.Font(join(dirname(__file__), 'DejaVuSans.ttf'), 25),
     (255, 255, 255),
@@ -384,12 +382,12 @@ class VKeyboardLayout(object):
 
     An erasing key is inserted automatically to the first row.
 
-    If allowUpperCase flag is True, then an upper case key will be inserted at
+    If ``allow_uppercase`` flag is True, then an upper case key will be inserted at
     the beginning of the second row.
 
-    If allowSpecialChars flag is True, then an special characters / number key will
-    be inserted at the beginning of the third row. Pressing this key will switch the
-    associated keyboard current layout.
+    If ``allow_special_chars`` flag is True, then an special characters / number key
+    will be inserted at the beginning of the third row. Pressing this key will switch
+    the associated keyboard current layout.
     """
 
     # Azerty layout
@@ -647,16 +645,16 @@ class VKeyboard(object):
         :param event: Event to process.
         """
         if self.state > 0:
-            if event.type == MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 key = self.layout.get_key_at(pygame.mouse.get_pos())
                 if key is not None:
                     self.on_key_down(key)
-            elif event.type == MOUSEBUTTONUP:
+            elif event.type == pygame.MOUSEBUTTONUP:
                 self.on_key_up()
-            elif event.type == KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 value = pygame.key.name(event.key)
                 # TODO : Find from layout (consider checking layout key space ?)
-            elif event.type == KEYUP:
+            elif event.type == pygame.KEYUP:
                 value = pygame.key.name(event.key)
                 # TODO : Find from layout (consider checking layout key space ?)
 
