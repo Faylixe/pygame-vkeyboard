@@ -1,22 +1,19 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# coding: utf8
 
-"""Simple keyboard usage using custom numeric layout."""
+""" Simple keyboard usage using custom numeric layout. """
 
-import pygame
+import pygame  # pylint: disable=import-error
 import pygame_vkeyboard as vkboard
 
 
 def on_key_event(text):
-    """
-    Print the current text.
-    """
+    """ Print the current text. """
     print('Current text:', text)
 
 
 def main(test=False):
-    """
-    Main program.
+    """ Main program.
 
     :param test: Indicate function is being tested
     :type test: bool
@@ -29,8 +26,12 @@ def main(test=False):
 
     # Create keyboard
     model = ['123', '456', '789', '*0#']
-    layout = vkboard.VKeyboardLayout(model, key_size=40, allow_uppercase=False,
-                                     allow_special_chars=False, allow_space=False)
+    layout = vkboard.VKeyboardLayout(
+        model,
+        key_size=40,
+        allow_uppercase=False,
+        allow_special_chars=False,
+        allow_space=False)
     keyboard = vkboard.VKeyboard(screen, on_key_event, layout)
     keyboard.enable()
 
@@ -48,6 +49,7 @@ def main(test=False):
         # At first loop returns
         if test:
             break
+
 
 if __name__ == '__main__':
     main()

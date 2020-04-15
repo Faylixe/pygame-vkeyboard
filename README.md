@@ -103,9 +103,9 @@ Several examples are provided with the **pygame_vkeyboard** library.
 To run the examples, simply execute these commands in a terminal:
 
 ```bash
-    $> python -m pygame_vkeyboard.examples.azerty
-    $> python -m pygame_vkeyboard.examples.numeric
-    $> python -m pygame_vkeyboard.examples.renderer
+python -m pygame_vkeyboard.examples.azerty
+python -m pygame_vkeyboard.examples.numeric
+python -m pygame_vkeyboard.examples.renderer
 ```
 
 ## Contributing

@@ -1,22 +1,19 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# coding: utf8
 
-"""Simple keyboard usage using AZERTY layout."""
+""" Simple keyboard usage using AZERTY layout. """
 
-import pygame
+import pygame  # pylint: disable=import-error
 import pygame_vkeyboard as vkboard
 
 
 def on_key_event(text):
-    """
-    Print the current text.
-    """
+    """ Print the current text. """
     print('Current text:', text)
 
 
 def main(test=False):
-    """
-    Main program.
+    """ Main program.
 
     :param test: Indicate function is being tested
     :type test: bool
@@ -46,6 +43,7 @@ def main(test=False):
         # At first loop returns
         if test:
             break
+
 
 if __name__ == '__main__':
     main()
