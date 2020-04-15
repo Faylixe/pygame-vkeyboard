@@ -269,9 +269,8 @@ class VKey(object):
         is_touched:
             True is the given position collide this key, False otherwise.
         """
-        return all(
-            position[0] >= self.position[0],
-            position[0] <= self.position[0] + self.size[0])
+        return all((position[0] >= self.position[0],
+                    position[0] <= self.position[0] + self.size[0]))
 
     def update_buffer(self, buffer):
         """ Text update method.
@@ -509,9 +508,8 @@ class VKeyRow(object):
         contains:
             True if the given position collide this row, False otherwise.
         """
-        return all(
-            position[1] >= self.position[1],
-            position[1] <= self.position[1] + self.height)
+        return all((position[1] >= self.position[1],
+                    position[1] <= self.position[1] + self.height))
 
     def __len__(self):
         """ len() operator overload.
