@@ -1,5 +1,4 @@
-#!/usr/bin/python
-# coding: utf-8
+# -*- coding: utf-8 -*-
 
 """Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
@@ -10,7 +9,7 @@ from pygame_vkeyboard import *
 
 # Initializes your window object or surface your want
 # vkeyboard to be displayed on top of.
-surface = ... 
+surface = ...
 
 def consume(text):
     print(repr('Current text : %s' % text))
@@ -25,28 +24,26 @@ keyboard.enable()
 import logging
 import pygame
 from os.path import join, dirname
-from pygame.locals import *
-
-pygame.font.init()
 
 # Configure logger.
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 
+
 class VKeyboardRenderer(object):
     """A VKeyboardRenderer is in charge of keyboard rendering.
 
     It handles keyboard rendering properties such as color or padding,
-    and provides two rendering methods : one for the keyboard background
-    and another one the the key rendering.
-    
+    and provides two types of rendering methods : one for the keyboard
+    background and another one the the key rendering.
+
     .. note::
         A DEFAULT style instance is available as class attribute.
     """
 
     def __init__(self, font, keyboard_background_color, key_background_color, text_color, special_key_background_color=None):
-        """VKeyboardStyle default constructor. 
-        
+        """VKeyboardStyle default constructor.
+
         :param font: Used font for rendering key.
         :param keyboard_background_color: Background color use for the keyboard.
         :param key_background_color: Tuple of background color for key (one value per state).
@@ -58,7 +55,7 @@ class VKeyboardRenderer(object):
         self.key_background_color = key_background_color
         self.special_key_background_color = special_key_background_color
         self.text_color = text_color
-        
+
     def draw_background(self, surface, position, size):
         """Default drawing method for background.
 
@@ -70,9 +67,9 @@ class VKeyboardRenderer(object):
         :param size: Expected size of the drawn keyboard.
         """
         pygame.draw.rect(surface, self.keyboard_background_color, position + size)
-    
+
     def draw_key(self, surface, key):
-        """Default drawing method for key. 
+        """Default drawing method for key.
 
         Draw the key accordingly to it type.
 
@@ -89,9 +86,9 @@ class VKeyboardRenderer(object):
             self.draw_special_char_key(surface, key)
         else:
             self.draw_character_key(surface, key)
-    
+
     def draw_character_key(self, surface, key, special=False):
-        """Default drawing method for key. 
+        """Default drawing method for key.
 
         Key is drawn as a simple rectangle filled using this
         cell style background color attribute. Key value is printed
@@ -111,7 +108,7 @@ class VKeyboardRenderer(object):
         surface.blit(self.font.render(key.value, 1, self.text_color[key.state], None), (x, y))
 
     def draw_space_key(self, surface, key):
-        """Default drawing method space key. 
+        """Default drawing method space key.
 
         Key is drawn as a simple rectangle filled using this
         cell style background color attribute. Key value is printed
@@ -121,7 +118,7 @@ class VKeyboardRenderer(object):
         :param key: Target key to be drawn.
         """
         self.draw_character_key(surface, key, False)
-    
+
     def draw_back_key(self, surface, key):
         """Default drawing method for back key. Drawn as character key.
 
@@ -136,23 +133,24 @@ class VKeyboardRenderer(object):
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        key.value = u'\u21e7' 
+        key.value = u'\u21e7'
         if key.is_activated():
             key.value = u'\u21ea'
         self.draw_character_key(surface, key, True)
-    
+
     def draw_special_char_key(self, surface, key):
         """Default drawing method for special char key. Drawn as character key.
 
         :param surface: Surface background should be drawn in.
         :param key: Target key to be drawn.
         """
-        key.value = u'#' 
+        key.value = u'#'
         if key.is_activated():
             key.value = u'Ab'
         self.draw_character_key(surface, key, True)
 
 """ Default style implementation. """
+pygame.font.init()
 VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     pygame.font.Font(join(dirname(__file__), 'DejaVuSans.ttf'), 25),
     (255, 255, 255),
@@ -160,6 +158,7 @@ VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     ((0, 0, 0), (255, 255, 255)),
     ((180, 180, 180), (0, 0, 0)),
 )
+
 
 class VKey(object):
     """Simple key holder class.
@@ -180,24 +179,24 @@ class VKey(object):
 
     def set_size(self, size):
         """Sets the size of this key.
-        
+
         :param size: Size of this key.
         """
         self.size = (size, size)
 
     def is_touched(self, position):
         """Hit detection method.
-        
+
         Indicates if this key has been hit by a touch / click event at the given position.
 
         :param position: Event position.
         :returns: True is the given position collide this key, False otherwise.
         """
-        return position[0] >= self.position[0] and position[0] <= self.position[0]+ self.size[0]
-    
+        return position[0] >= self.position[0] and position[0] <= self.position[0] + self.size[0]
+
     def update_buffer(self, buffer):
         """Text update method.
-        
+
         Aims to be called internally when a key collision has been detected.
         Updates and returns the given buffer using this key value.
 
@@ -206,20 +205,21 @@ class VKey(object):
         """
         return buffer + self.value
 
+
 class VSpaceKey(VKey):
     """ Custom key for spacebar. """
 
     def __init__(self, length):
         """Default constructor.
-        
+
         :param length: Key length.
         """
         VKey.__init__(self, 'Space')
         self.length = length
-    
+
     def set_size(self, size):
         """Sets the size of this key.
-        
+
         :param size: Size of this key.
         """
         self.size = (size * self.length, size)
@@ -232,13 +232,14 @@ class VSpaceKey(VKey):
         """
         return buffer + ' '
 
+
 class VBackKey(VKey):
     """ Custom key for back. """
 
     def __init__(self):
         """ Default constructor. """
         VKey.__init__(self, u'\u21a9')
-    
+
     def update_buffer(self, buffer):
         """Text update method. Removes last character.
 
@@ -247,11 +248,12 @@ class VBackKey(VKey):
         """
         return buffer[:-1]
 
+
 class VActionKey(VKey):
     """A VActionKey is a key that trigger and action
     rather than updating the buffer when pressed.
     """
-    
+
     def __init__(self, action, state_holder):
         """Default constructor.
 
@@ -271,6 +273,7 @@ class VActionKey(VKey):
         self.action()
         return buffer
 
+
 class VUppercaseKey(VActionKey):
     """ Action key for the uppercase switch. """
 
@@ -283,11 +286,12 @@ class VUppercaseKey(VActionKey):
 
     def is_activated(self):
         """Indicates if this key is activated.
-        
+
         :returns: True if activated, False otherwise:
         """
         return self.state_holder.uppercase
-        
+
+
 class VSpecialCharKey(VActionKey):
     """ Action key for the special char switch. """
 
@@ -300,14 +304,15 @@ class VSpecialCharKey(VActionKey):
 
     def is_activated(self):
         """Indicates if this key is activated.
-        
+
         :returns: True if activated, False otherwise:
         """
         return self.state_holder.special_char
 
+
 class VKeyRow(object):
     """A VKeyRow defines a keyboard row which is composed of a list of VKey.
-    
+
     This class aims to be created internally after parsing a keyboard layout model.
     It is used to optimize collision detection, by first checking row collision,
     then internal row key detection.
@@ -339,7 +344,7 @@ class VKeyRow(object):
         The size correspond to the row height, since the row width is constraint
         to the surface width the associated keyboard belongs. Once size is settled,
         the size for each child keys is associated.
-        
+
         :param position: Position of this row.
         :param size: Size of the row (height)
         :param padding: Padding between key.
@@ -354,7 +359,7 @@ class VKeyRow(object):
 
     def __contains__(self, position):
         """Indicates if the given position collide this row.
-        
+
         :param position: Position to check againt this row.
         :returns: True if the given position collide this row, False otherwise.
         """
@@ -367,35 +372,40 @@ class VKeyRow(object):
         """
         return len(self.keys)
 
+
 class VKeyboardLayout(object):
     """Keyboard layout class.
-    
+
     A keyboard layout is built using layout model which consists in an
     list of supported character. Such list item as simple string containing
     characters assigned to a row.
 
     An erasing key is inserted automatically to the first row.
 
-    If allowUpperCase flag is True, then an upper case key will be inserted at
+    If ``allow_uppercase`` flag is True, then an upper case key will be inserted at
     the beginning of the second row.
 
-    If allowSpecialChars flag is True, then an special characters / number key will
-    be inserted at the beginning of the third row. Pressing this key will switch the
-    associated keyboard current layout.
+    If ``allow_special_chars`` flag is True, then an special characters / number key
+    will be inserted at the beginning of the third row. Pressing this key will switch
+    the associated keyboard current layout.
     """
 
-    """ Azerty layout. """
+    # Azerty layout
     AZERTY = ['1234567890', 'azertyuiop', 'qsdfghjklm', 'wxcvbn']
 
-    """ Number only layout. """ 
+    # Qwerty layout
+    QWERTY = ['1234567890', 'qwertyuiop', 'asdfghjkl', 'wzxcvbnm']
+
+    # Number only layout
     NUMBER = ['123', '456', '789', '0']
 
-    """ """
-    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?.@+<>#', u'[]{}/\\|'] # TODO : Insert special characters layout which include number.
+    # Special characters layout
+    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?.@+<>#',
+               u'[]{}/\\|']  # TODO : Insert special characters layout which include number.
 
     def __init__(self, model, key_size=None, padding=5, allow_uppercase=True, allow_special_chars=True, allow_space=True):
         """Default constructor. Initializes layout rows.
-        
+
         :param model: Layout model to use.
         :param key_size Size of the key, if not specified will be computed dynamically.
         :param padding: Padding between key (work horizontally as vertically).
@@ -428,8 +438,10 @@ class VKeyboardLayout(object):
         i = len(self.rows) - 1
         current_row = self.rows[i]
         special_keys = [VBackKey()]
-        if self.allow_uppercase: special_keys.append(VUppercaseKey(keyboard))
-        if self.allow_special_chars: special_keys.append(VSpecialCharKey(keyboard))
+        if self.allow_uppercase:
+            special_keys.append(VUppercaseKey(keyboard))
+        if self.allow_special_chars:
+            special_keys.append(VSpecialCharKey(keyboard))
         while len(special_keys) > 0:
             first = False
             while len(special_keys) > 0 and len(current_row) < max_length:
@@ -453,7 +465,7 @@ class VKeyboardLayout(object):
 
     def configure_bound(self, surface_size):
         """Compute keyboard bound regarding of this layout.
-        
+
         If key_size is None, then it will compute it regarding of the given surface_size.
 
         :param surface_size: Size of the surface this layout will be rendered on.
@@ -470,7 +482,7 @@ class VKeyboardLayout(object):
             height = self.key_size * r + self.padding * (r + 1)
             logger.warning('Normalized key_size to %spx' % self.key_size)
         self.set_size((surface_size[0], height), surface_size)
-    
+
     def set_size(self, size, surface_size):
         """Sets the size of this layout, and updates
         position, and rows accordingly.
@@ -512,7 +524,7 @@ class VKeyboardLayout(object):
 
     def get_key_at(self, position):
         """Retrieves if any key is located at the given position
-        
+
         :param position: Position to check key at.
         :returns: The located key if any at the given position, None otherwise.
         """
@@ -522,6 +534,7 @@ class VKeyboardLayout(object):
                     if key.is_touched(position):
                         return key
         return None
+
 
 def synchronizeLayout(primary, secondary, surface_size):
     """Synchronizes given layouts by normalizing height by using
@@ -547,16 +560,17 @@ def synchronizeLayout(primary, secondary, surface_size):
         logging.warning('Normalizing layout size from primary to secondary')
         primary.set_size(secondary.size, surface_size)
 
+
 class VKeyboard(object):
     """Virtual Keyboard class.
-    
+
     A virtual keyboard consists in a VKeyboardLayout that acts as the keyboard model
-    and a VKeyboardRenderer which is in charge of drawing keyboard component to screen. 
+    and a VKeyboardRenderer which is in charge of drawing keyboard component to screen.
     """
 
     def __init__(self, surface, text_consumer, layout, special_char_layout=VKeyboardLayout(VKeyboardLayout.SPECIAL), renderer=VKeyboardRenderer.DEFAULT):
         """Default constructor.
-        
+
         :param surface: Surface this keyboard will be displayed at.
         :param text_consumer: Consumer that process text for each update.
         :param layout: Layout this keyboard will use.
@@ -586,7 +600,7 @@ class VKeyboard(object):
     def set_layout(self, layout):
         """Sets the layout this keyboard work with.
         Keyboard is invalidate by this action and redraw itself.
-        
+
         :param layout: Layout to set.
         """
         self.layout = layout
@@ -596,7 +610,7 @@ class VKeyboard(object):
         """ Sets this keyboard as active. """
         self.state = 1
         self.invalidate()
-    
+
     def disable(self):
         """ Sets this keyboard as non active. """
         self.state = 0
@@ -631,19 +645,19 @@ class VKeyboard(object):
         :param event: Event to process.
         """
         if self.state > 0:
-            if event.type == MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 key = self.layout.get_key_at(pygame.mouse.get_pos())
                 if key is not None:
                     self.on_key_down(key)
-            elif event.type == MOUSEBUTTONUP:
+            elif event.type == pygame.MOUSEBUTTONUP:
                 self.on_key_up()
-            elif event.type == KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 value = pygame.key.name(event.key)
                 # TODO : Find from layout (consider checking layout key space ?)
-            elif event.type == KEYUP:
+            elif event.type == pygame.KEYUP:
                 value = pygame.key.name(event.key)
                 # TODO : Find from layout (consider checking layout key space ?)
-                
+
     def set_key_state(self, key, state):
         """Sets the key state and redraws it.
 
@@ -655,7 +669,7 @@ class VKeyboard(object):
 
     def on_key_down(self, key):
         """Process key down event by pressing the given key.
-        
+
         :param key: Key that receives the key down event.
         """
         self.set_key_state(key, 1)
