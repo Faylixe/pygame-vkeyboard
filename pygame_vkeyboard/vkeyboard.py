@@ -30,6 +30,8 @@ import pygame  # pylint: disable=import-error
 
 from os.path import join, dirname
 
+from pygame_vkeyboard.textinput import TextInput
+
 # Configure logger.
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -808,6 +810,11 @@ class VKeyboard(object):
             self.special_char_layout,
             self.surface.get_size())
         self.set_layout(layout)
+        self.input = TextInput(self.surface,
+                               (self.original_layout.position[0],
+                                self.original_layout.position[1] - self.original_layout.key_size),
+                               (self.original_layout.size[0],
+                                self.original_layout.key_size))
 
     def invalidate(self):
         """ Invalidates keyboard state, reset layout and redraw. """
@@ -873,6 +880,7 @@ class VKeyboard(object):
             Event to process.
         """
         if self.state > 0:
+            self.input.on_event(event)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 key = self.layout.get_key_at(pygame.mouse.get_pos())
                 if key is not None:
@@ -913,6 +921,10 @@ class VKeyboard(object):
     def on_key_up(self):
         """ Process key up event by updating buffer and release key. """
         if (self.last_pressed is not None):
+            if isinstance(self.last_pressed, VBackKey):
+                self.input.backspace()
+            elif not isinstance(self.last_pressed, VActionKey):
+                self.input.add_at_cursor(self.last_pressed.update_buffer(''))
             self.set_key_state(self.last_pressed, 0)
             self.buffer = self.last_pressed.update_buffer(self.buffer)
             self.text_consumer(self.buffer)
