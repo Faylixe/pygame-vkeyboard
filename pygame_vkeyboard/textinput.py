@@ -101,7 +101,7 @@ class TextInputRenderer(object):
                              self.cursor_color,
                              (position[0], position[1] + 4) + (cursor.size[0], cursor.size[1] - 8))
 
-    def draw_text(self, surface, cursor, text):
+    def draw_text(self, surface, position, cursor, text):
         """Default drawing method for text.
 
         Draw the text.
@@ -110,16 +110,18 @@ class TextInputRenderer(object):
         ----------
         surface:
             Surface background should be drawn in.
+        position:
+            Surface relative position the keyboard should be drawn at.
         cursor:
             Cursor element to be drawn.
         text:
             Target text to be drawn.
         """
         line = 0
-        cursor_x, cursor_y = 0, cursor.position[1]
+        cursor_x, cursor_y = 0, position[1]
         for part in textwrap.wrap(text, cursor.max_line_chars):
-            x = cursor.position[0]
-            y = cursor.position[1] + line * cursor.size[1]
+            x = position[0]
+            y = position[1] + line * cursor.size[1]
             surface.blit(self.font.render(part, 1, self.text_color), (x, y))
             if cursor.state and cursor.line_count == line:
                 cursor_x = self.font.size(part[:cursor.line_index])[0]
@@ -146,9 +148,8 @@ class TextInputCursor(object):
     the position in the current line.
     """
 
-    def __init__(self, position, size, max_line_chars):
+    def __init__(self, size, max_line_chars):
         self.state = 1
-        self.position = position
         self.size = size
         self.index = 0
         self.line_index = 0
@@ -176,6 +177,7 @@ class TextInput(object):
     """
 
     def __init__(self, surface, position, size, renderer=TextInputRenderer.DEFAULT):
+        self.state = 0
         self.surface = surface
         self.position = position
         self.size = size
@@ -183,8 +185,16 @@ class TextInput(object):
         self.renderer = renderer
         max_line_length = self.renderer.fit_font(size)
 
-        self.cursor = TextInputCursor(position, (2, size[1]), max_line_length)
+        self.cursor = TextInputCursor((2, size[1]), max_line_length)
+
+    def enable(self):
+        """Set this text input as active."""
+        self.state = 1
         self.draw()
+
+    def disable(self):
+        """Set this text input as non active."""
+        self.state = 0
 
     def on_event(self, event):
         """Pygame event processing callback method.
@@ -194,22 +204,26 @@ class TextInput(object):
         event:
             Event to process.
         """
-        if event.type == pygame.KEYUP:
-           if event.key == pygame.K_LEFT:
-               self.cursor.increment(-1, len(self.text))
-               self.draw()
-           if event.key == pygame.K_RIGHT:
-              self.cursor.increment(1, len(self.text))
-              self.draw()
+        if self.state > 0:
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    self.cursor.increment(-1, len(self.text))
+                    self.draw()
+                if event.key == pygame.K_RIGHT:
+                    self.cursor.increment(1, len(self.text))
+                    self.draw()
 
     def draw(self):
         """Draw the text input box"""
-        self.renderer.draw_background(self.surface, self.position, self.size)
-        self.renderer.draw_text(self.surface, self.cursor, self.text)
+        if self.state > 0:
+            position = (self.position[0], self.position[1] - self.cursor.line_count * self.size[1])
+            size = (self.size[0], self.size[1] * (self.cursor.line_count + 1))
+            self.renderer.draw_background(self.surface, position, size)
+            self.renderer.draw_text(self.surface, position, self.cursor, self.text)
 
     def add_at_cursor(self, letter):
         """Add a character whereever the cursor is currently located"""
-        if self.cursor.position[0] < len(self.text):
+        if self.cursor.index < len(self.text):
             # Inserting in the text
             self.text = self.text[:self.cursor.index] + letter + self.text[self.cursor.index:]
             self.cursor.increment(1, len(self.text))
@@ -220,7 +234,7 @@ class TextInput(object):
 
     def backspace(self):
         """Delete a character before the cursor position"""
-        if self.cursor.position[0] == 0:
+        if self.cursor.index == 0:
             return
         self.text = self.text[:self.cursor.index-1] + self.text[self.cursor.index:]
         self.cursor.increment(-1, len(self.text))
@@ -228,10 +242,10 @@ class TextInput(object):
 
     def set_cursor(self, pos):
         """Move cursor to char nearest position (x,y)"""
-        line = int((pos[1]-self.position[1])/self.cursor.size[1])  # vertical
+        line = int((pos[1] - self.position[1]) / self.cursor.size[1])  # vertical
         if line > 1:
             line = 1  # only 2 lines
-        x = pos[0]-self.position[0] + line*self.w  # virtual x position
+        x = pos[0] - self.position[0] + line * self.size[0]  # virtual x position
         p = 0
         l = len(self.text)
 
@@ -242,5 +256,6 @@ class TextInput(object):
             if textX >= x:
                 break  # we found it
             p += 1
-        self.cursor.position = p
+        self.cursor.index = p
+        self.cursor.increment(0)  # Update cursor parameters
         self.draw()

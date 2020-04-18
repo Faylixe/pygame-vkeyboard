@@ -775,7 +775,8 @@ class VKeyboard(object):
             text_consumer,
             layout,
             special_char_layout=VKeyboardLayout(VKeyboardLayout.SPECIAL),
-            renderer=VKeyboardRenderer.DEFAULT):
+            renderer=VKeyboardRenderer.DEFAULT,
+            show_text_input=False):
         """ Default constructor.
 
         Parameters
@@ -796,7 +797,6 @@ class VKeyboard(object):
         self.surface = surface
         self.text_consumer = text_consumer
         self.renderer = renderer
-        self.buffer = u''
         self.state = 0
         self.last_pressed = None
         self.uppercase = False
@@ -805,16 +805,20 @@ class VKeyboard(object):
         self.original_layout.configure_specials_key(self)
         self.special_char_layout = special_char_layout
         self.special_char_layout.configure_specials_key(self)
+
         synchronizeLayout(
             self.original_layout,
             self.special_char_layout,
             self.surface.get_size())
         self.set_layout(layout)
+
         self.input = TextInput(self.surface,
                                (self.original_layout.position[0],
                                 self.original_layout.position[1] - self.original_layout.key_size),
                                (self.original_layout.size[0],
                                 self.original_layout.key_size))
+        if show_text_input:
+            self.input.enable()
 
     def invalidate(self):
         """ Invalidates keyboard state, reset layout and redraw. """
@@ -921,11 +925,13 @@ class VKeyboard(object):
     def on_key_up(self):
         """ Process key up event by updating buffer and release key. """
         if (self.last_pressed is not None):
+            text = ''
             if isinstance(self.last_pressed, VBackKey):
                 self.input.backspace()
-            elif not isinstance(self.last_pressed, VActionKey):
-                self.input.add_at_cursor(self.last_pressed.update_buffer(''))
+            else:
+                text = self.last_pressed.update_buffer('')
+            if text:
+                self.input.add_at_cursor(text)
             self.set_key_state(self.last_pressed, 0)
-            self.buffer = self.last_pressed.update_buffer(self.buffer)
-            self.text_consumer(self.buffer)
+            self.text_consumer(self.input.text)
             self.last_pressed = None
