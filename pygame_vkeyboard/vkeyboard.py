@@ -859,6 +859,8 @@ class VKeyboard(object):
                 for key in row.keys:
                     self.renderer.draw_key(self.surface, key)
 
+            self.input.draw()
+
     def on_uppercase(self):
         """ Uppercase key press handler. """
         self.uppercase = not self.uppercase

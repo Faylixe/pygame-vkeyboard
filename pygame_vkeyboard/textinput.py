@@ -38,8 +38,7 @@ class TextInputRenderer(object):
         self.background_color = background_color
 
     def get_text_width(self, text):
-        """
-        Return the width of the given text.
+        """Return the width of the given text.
 
         Parameters
         ----------
@@ -49,8 +48,7 @@ class TextInputRenderer(object):
         return self.font.size(text)[0]
 
     def fit_font(self, size):
-        """
-        Set the size of the font to fit the rectangle with
+        """Set the size of the font to fit the rectangle with
         the given size.
 
         It returns an average of the number of characters to
@@ -160,25 +158,35 @@ class TextInputCursor(object):
         self.line_index = 0
         self.max_line_chars = max_line_chars
 
+        # Blink management
+        self.clock = pygame.time.Clock()
+        self.switch_ms = 500
+        self.switch_counter = 0
+
+    def set_index(self, index, line=0):
+        """Move the cursor at the given index"""
+        self.index = line * self.max_line_chars + index
+        self.line = self.index // self.max_line_chars
+        self.line_index = self.index % self.max_line_chars
+
     def increment(self, step=1, position_max=None):
         """Move the cursor of one or more steps (but not beyond the position_max)"""
         pos = max(0, self.index + step)
-        self.index = min(pos, position_max or pos)
+        if position_max is None:
+            position_max = pos
+        self.index = min(pos, position_max)
         self.line = self.index // self.max_line_chars
         self.line_index = self.index % self.max_line_chars
 
     def toggle(self):
         """Toggle visibility of the cursor"""
-        if self.state:
-            self.state = 0
-        else:
-            self.state = 1
-
-
-def resize(surface, size):
-    if surface.get_width() != size[0] or surface.get_height() != size[1]:
-        return pygame.Surface(size, pygame.SRCALPHA, 32)
-    return surface
+        old = self.state
+        self.clock.tick()
+        self.switch_counter += self.clock.get_time()
+        if self.switch_counter >= self.switch_ms:
+            self.switch_counter %= self.switch_ms
+            self.state = int(not self.state)
+        return self.state != old
 
 
 class TextInput(object):
@@ -189,7 +197,6 @@ class TextInput(object):
     def __init__(self, surface, position, size, renderer=TextInputRenderer.DEFAULT):
         self.state = 0
         self.surface = surface
-        self.bg_surface = pygame.Surface(size, pygame.SRCALPHA, 32)
         self.position = position
         self.size = size
         self.text = ''
@@ -203,7 +210,6 @@ class TextInput(object):
     def enable(self):
         """Set this text input as active."""
         self.state = 1
-        self.draw()
 
     def disable(self):
         """Set this text input as non active."""
@@ -218,6 +224,8 @@ class TextInput(object):
             Event to process.
         """
         if self.state > 0:
+            if self.cursor.toggle():
+                self.draw()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
                     self.cursor.increment(-1, len(self.text))
@@ -229,7 +237,7 @@ class TextInput(object):
                 self.set_cursor(event.pos)
 
     def get_rect(self):
-        """Return the text input box rect"""
+        """Return the text input box rect."""
         line_height = self.cursor.size[1]
         line_count = max(len(self.text) // self.max_line_chars + 1, self.cursor.line + 1)
         position = (self.position[0], self.position[1] - line_height * (line_count - 1))
@@ -237,15 +245,14 @@ class TextInput(object):
         return pygame.Rect(position, size)
 
     def draw(self):
-        """Draw the text input box"""
+        """Draw the text input box."""
         if self.state > 0:
             lines = textwrap.wrap(self.text, self.max_line_chars)
             line_height = self.cursor.size[1]
 
             # Calculate the position and size of the background
             rect = self.get_rect()
-            self.bg_surface = resize(self.bg_surface, rect.size)
-            self.renderer.draw_background(self.surface, rect.topleft, rect.size)
+            self.renderer.draw_background(self.surface, (rect.x, rect.y), rect.size)
 
             # Draw the lines
             i = 0
@@ -263,7 +270,13 @@ class TextInput(object):
             self.renderer.draw_cursor(self.surface, cursor_position, self.cursor)
 
     def add_at_cursor(self, letter):
-        """Add a character whereever the cursor is currently located"""
+        """Add a character whereever the cursor is currently located.
+
+        Parameters
+        ----------
+        letter:
+            Single char to append.
+        """
         if self.cursor.index < len(self.text):
             # Inserting in the text
             self.text = self.text[:self.cursor.index] + letter + self.text[self.cursor.index:]
@@ -274,15 +287,32 @@ class TextInput(object):
         self.draw()
 
     def backspace(self):
-        """Delete a character before the cursor position"""
+        """Delete a character before the cursor position."""
         if self.cursor.index == 0:
             return
         self.text = self.text[:self.cursor.index-1] + self.text[self.cursor.index:]
         self.cursor.increment(-1, len(self.text))
         self.draw()
 
+    def set_text(self, text):
+        """Set the current text.
+
+        Parameters
+        ----------
+        text:
+            New text.
+        """
+        self.text = text
+        self.cursor.set_index(len(text))
+
     def set_cursor(self, position):
-        """Move cursor to char nearest position (x, y)"""
+        """Move cursor to char nearest position (x, y).
+
+        Parameters
+        ----------
+        position:
+            Absolute position (x, y) on the surface.
+        """
         rect = self.get_rect()
         if position[1] < rect.top or position[1] > rect.bottom:
             return
@@ -292,13 +322,11 @@ class TextInput(object):
         text = textwrap.wrap(self.text, self.max_line_chars)[line]
         text_length = len(text)
 
-        x = position[0] - rect.left
         pos = 1
         while pos < text_length:
             width = self.renderer.get_text_width(text[:pos])
-            if width >= x:
+            if width >= position[0] - rect.left:
                 break  # we found it
             pos += 1
-        self.cursor.index = line * self.max_line_chars + pos
-        self.cursor.increment(0)  # Update cursor parameters
+        self.cursor.set_index(pos, line)
         self.draw()

@@ -23,6 +23,7 @@ def main(test=False):
     # Init pygame
     pygame.init()
     screen = pygame.display.set_mode((300, 400))
+    screen.fill((200, 200, 200))
 
     # Create keyboard
     layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.QWERTY)
