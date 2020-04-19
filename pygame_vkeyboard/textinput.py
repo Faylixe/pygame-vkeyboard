@@ -14,7 +14,8 @@ class TextInputRenderer(object):
                  font_name,
                  text_color,
                  cursor_color,
-                 text_background_color):
+                 border_color,
+                 background_color):
         """
         Parameters
         ----------
@@ -24,14 +25,28 @@ class TextInputRenderer(object):
             RGB tuple for text color.
         cursor_color:
             RGB tuple for cursor color.
-        text_background_color:
+        border_color:
+            RGB tuple for border line color.
+        background_color:
             RGB tuple for background color for text.
         """
         self.font = None
         self.font_name = font_name
         self.text_color = text_color
         self.cursor_color = cursor_color
-        self.text_background_color = text_background_color
+        self.border_color = border_color
+        self.background_color = background_color
+
+    def get_text_width(self, text):
+        """
+        Return the width of the given text.
+
+        Parameters
+        ----------
+        text:
+            Text to evaluate.
+        """
+        return self.font.size(text)[0]
 
     def fit_font(self, size):
         """
@@ -58,7 +73,7 @@ class TextInputRenderer(object):
             text_width, text_height = self.font.size(text)
             self.font = pygame.font.Font(self.font_name, i)
             i += 1
-        return int(size[0] / (text_width / (10 + 2*26))) - 1  # Chars per line (horizontal)
+        return int(size[0] / (text_width / (10 + 2*26))) - 1  # Average chars per line (horizontal)
 
     def draw_background(self, surface, position, size):
         """Default drawing method for background.
@@ -76,9 +91,9 @@ class TextInputRenderer(object):
             Expected size of the drawn keyboard.
         """
         # Draw border
-        pygame.draw.rect(surface,  (0, 0, 0), position + size)
+        pygame.draw.rect(surface,  self.border_color, position + size)
         # Draw text background
-        pygame.draw.rect(surface,  self.text_background_color,
+        pygame.draw.rect(surface,  self.background_color,
                          (position[0] + 1, position[1] + 1) + (size[0] - 2, size[1] - 2))
 
     def draw_cursor(self, surface, position, cursor):
@@ -99,9 +114,10 @@ class TextInputRenderer(object):
         if cursor.state:
             pygame.draw.rect(surface,
                              self.cursor_color,
-                             (position[0], position[1] + 4) + (cursor.size[0], cursor.size[1] - 8))
+                             (position[0], position[1] + 4) +
+                             (cursor.size[0], cursor.size[1] - 8))
 
-    def draw_text(self, surface, position, cursor, text):
+    def draw_text(self, surface, position, text):
         """Default drawing method for text.
 
         Draw the text.
@@ -112,29 +128,17 @@ class TextInputRenderer(object):
             Surface background should be drawn in.
         position:
             Surface relative position the keyboard should be drawn at.
-        cursor:
-            Cursor element to be drawn.
         text:
             Target text to be drawn.
         """
-        line = 0
-        cursor_x, cursor_y = 0, position[1]
-        for part in textwrap.wrap(text, cursor.max_line_chars):
-            x = position[0]
-            y = position[1] + line * cursor.size[1]
-            surface.blit(self.font.render(part, 1, self.text_color), (x, y))
-            if cursor.state and cursor.line_count == line:
-                cursor_x = self.font.size(part[:cursor.line_index])[0]
-                cursor_y = y
-            line += 1
+        surface.blit(self.font.render(text, 1, self.text_color), position)
 
-        self.draw_cursor(surface, (cursor_x, cursor_y), cursor)
 
 # Default text renderer
 pygame.font.init()
 TextInputRenderer.DEFAULT = TextInputRenderer(
     osp.join(osp.dirname(__file__), 'DejaVuSans.ttf'),
-    (0, 0, 0), (90, 90, 90), (255, 255, 255))
+    (255, 255, 255), (255, 255, 255), (255, 255, 255), (0, 0, 0))
 
 
 class TextInputCursor(object):
@@ -151,17 +155,17 @@ class TextInputCursor(object):
     def __init__(self, size, max_line_chars):
         self.state = 1
         self.size = size
+        self.line = 0
         self.index = 0
         self.line_index = 0
-        self.line_count = 0
         self.max_line_chars = max_line_chars
 
     def increment(self, step=1, position_max=None):
-        """Move the cursor of one or more steps (but not beyond the end of the text)"""
+        """Move the cursor of one or more steps (but not beyond the position_max)"""
         pos = max(0, self.index + step)
         self.index = min(pos, position_max or pos)
+        self.line = self.index // self.max_line_chars
         self.line_index = self.index % self.max_line_chars
-        self.line_count = self.index // self.max_line_chars
 
     def toggle(self):
         """Toggle visibility of the cursor"""
@@ -182,10 +186,12 @@ class TextInput(object):
         self.position = position
         self.size = size
         self.text = ''
+        self.text_margin = 2
         self.renderer = renderer
-        max_line_length = self.renderer.fit_font(size)
+        self.max_line_chars = self.renderer.fit_font((size[0] - self.text_margin * 2,
+                                                      size[1] - self.text_margin * 2))
 
-        self.cursor = TextInputCursor((2, size[1]), max_line_length)
+        self.cursor = TextInputCursor((2, size[1]), self.max_line_chars)
 
     def enable(self):
         """Set this text input as active."""
@@ -216,10 +222,33 @@ class TextInput(object):
     def draw(self):
         """Draw the text input box"""
         if self.state > 0:
-            position = (self.position[0], self.position[1] - self.cursor.line_count * self.size[1])
-            size = (self.size[0], self.size[1] * (self.cursor.line_count + 1))
+            lines = textwrap.wrap(self.text, self.max_line_chars)
+
+            # Calculate the position and size of the background
+            line_height = self.cursor.size[1]
+            line_count = max(len(lines), self.cursor.line + 1)
+            if lines:
+                position = (self.position[0], self.position[1] - line_height * (line_count - 1))
+                size = (self.size[0], line_height * line_count)
+            else:
+                position = self.position
+                size = (self.size[0], line_height)
             self.renderer.draw_background(self.surface, position, size)
-            self.renderer.draw_text(self.surface, position, self.cursor, self.text)
+
+            # Draw the lines
+            i = 0
+            for line in lines:
+                x, y = position[0] + self.text_margin, position[1] + self.text_margin + i * line_height
+                self.renderer.draw_text(self.surface, (x, y), line)
+                i += 1
+
+            # Draw the cursor
+            if self.cursor.line_index > 0:
+                cursor_x = self.renderer.get_text_width(lines[self.cursor.line][:self.cursor.line_index])
+            else:
+                cursor_x = 0
+            cursor_position = (position[0] + cursor_x, position[1] + self.cursor.line * line_height)
+            self.renderer.draw_cursor(self.surface, cursor_position, self.cursor)
 
     def add_at_cursor(self, letter):
         """Add a character whereever the cursor is currently located"""
