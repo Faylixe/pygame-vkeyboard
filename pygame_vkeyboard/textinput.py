@@ -247,7 +247,7 @@ class TextInput(object):
     def draw(self):
         """Draw the text input box."""
         if self.state > 0:
-            lines = textwrap.wrap(self.text, self.max_line_chars)
+            lines = textwrap.wrap(self.text, self.max_line_chars, drop_whitespace=False)
             line_height = self.cursor.size[1]
 
             # Calculate the position and size of the background
