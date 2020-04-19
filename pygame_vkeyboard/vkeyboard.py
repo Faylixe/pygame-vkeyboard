@@ -503,7 +503,7 @@ class VKeyRow(object):
         Parameters
         ----------
         position:
-        Position to check againt this row.
+            Position to check againt this row.
 
         Returns
         -------
@@ -572,13 +572,15 @@ class VKeyboardLayout(object):
             Size of the key, if not specified will be computed dynamically.
         padding:
             Padding between key (work horizontally as vertically).
-        allowUpperCase:
+        allow_uppercase:
             Boolean flag that indicates usage of upper case switching key.
-        allowSpecialChars:
+        allow_special_chars:
             Boolean flag that indicates usage of special char switching key.
-        allowSpace:
+        allow_space:
             Boolean flag that indicates usage of space bar.
         """
+        self.position = None
+        self.size = None
         self.rows = []
         self.key_size = key_size
         self.padding = padding
@@ -661,7 +663,7 @@ class VKeyboardLayout(object):
                 (surface_size[1] / 2)
                 - (self.padding * (r + 1))) / r
             height = self.key_size * r + self.padding * (r + 1)
-            logger.warning('Normalized key_size to %spx' % self.key_size)
+            logger.warning('Normalized key_size to %spx', self.key_size)
         self.set_size((surface_size[0], height), surface_size)
 
     def set_size(self, size, surface_size):
