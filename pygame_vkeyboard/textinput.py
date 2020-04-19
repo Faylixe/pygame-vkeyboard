@@ -175,6 +175,12 @@ class TextInputCursor(object):
             self.state = 1
 
 
+def resize(surface, size):
+    if surface.get_width() != size[0] or surface.get_height() != size[1]:
+        return pygame.Surface(size, pygame.SRCALPHA, 32)
+    return surface
+
+
 class TextInput(object):
     """
     Handles the text input box.
@@ -183,6 +189,7 @@ class TextInput(object):
     def __init__(self, surface, position, size, renderer=TextInputRenderer.DEFAULT):
         self.state = 0
         self.surface = surface
+        self.bg_surface = pygame.Surface(size, pygame.SRCALPHA, 32)
         self.position = position
         self.size = size
         self.text = ''
@@ -218,27 +225,32 @@ class TextInput(object):
                 if event.key == pygame.K_RIGHT:
                     self.cursor.increment(1, len(self.text))
                     self.draw()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.set_cursor(event.pos)
+
+    def get_rect(self):
+        """Return the text input box rect"""
+        line_height = self.cursor.size[1]
+        line_count = max(len(self.text) // self.max_line_chars + 1, self.cursor.line + 1)
+        position = (self.position[0], self.position[1] - line_height * (line_count - 1))
+        size = (self.size[0], line_height * line_count)
+        return pygame.Rect(position, size)
 
     def draw(self):
         """Draw the text input box"""
         if self.state > 0:
             lines = textwrap.wrap(self.text, self.max_line_chars)
+            line_height = self.cursor.size[1]
 
             # Calculate the position and size of the background
-            line_height = self.cursor.size[1]
-            line_count = max(len(lines), self.cursor.line + 1)
-            if lines:
-                position = (self.position[0], self.position[1] - line_height * (line_count - 1))
-                size = (self.size[0], line_height * line_count)
-            else:
-                position = self.position
-                size = (self.size[0], line_height)
-            self.renderer.draw_background(self.surface, position, size)
+            rect = self.get_rect()
+            self.bg_surface = resize(self.bg_surface, rect.size)
+            self.renderer.draw_background(self.surface, rect.topleft, rect.size)
 
             # Draw the lines
             i = 0
             for line in lines:
-                x, y = position[0] + self.text_margin, position[1] + self.text_margin + i * line_height
+                x, y = rect.x + self.text_margin, rect.y + self.text_margin + i * line_height
                 self.renderer.draw_text(self.surface, (x, y), line)
                 i += 1
 
@@ -247,7 +259,7 @@ class TextInput(object):
                 cursor_x = self.renderer.get_text_width(lines[self.cursor.line][:self.cursor.line_index])
             else:
                 cursor_x = 0
-            cursor_position = (position[0] + cursor_x, position[1] + self.cursor.line * line_height)
+            cursor_position = (rect.x + cursor_x, rect.y + self.cursor.line * line_height)
             self.renderer.draw_cursor(self.surface, cursor_position, self.cursor)
 
     def add_at_cursor(self, letter):
@@ -269,22 +281,24 @@ class TextInput(object):
         self.cursor.increment(-1, len(self.text))
         self.draw()
 
-    def set_cursor(self, pos):
-        """Move cursor to char nearest position (x,y)"""
-        line = int((pos[1] - self.position[1]) / self.cursor.size[1])  # vertical
-        if line > 1:
-            line = 1  # only 2 lines
-        x = pos[0] - self.position[0] + line * self.size[0]  # virtual x position
-        p = 0
-        l = len(self.text)
+    def set_cursor(self, position):
+        """Move cursor to char nearest position (x, y)"""
+        rect = self.get_rect()
+        if position[1] < rect.top or position[1] > rect.bottom:
+            return
 
-        while p < l:
-            text = self.renderer.font.render(self.text[:p+1], 1, (255, 255, 255))  # how many pixels to next char?
-            rtext = text.get_rect()
-            textX = rtext.x + rtext.width
-            if textX >= x:
+        line_height = self.cursor.size[1]
+        line = int((position[1] - rect.top) / line_height)
+        text = textwrap.wrap(self.text, self.max_line_chars)[line]
+        text_length = len(text)
+
+        x = position[0] - rect.left
+        pos = 1
+        while pos < text_length:
+            width = self.renderer.get_text_width(text[:pos])
+            if width >= x:
                 break  # we found it
-            p += 1
-        self.cursor.index = p
+            pos += 1
+        self.cursor.index = line * self.max_line_chars + pos
         self.cursor.increment(0)  # Update cursor parameters
         self.draw()
