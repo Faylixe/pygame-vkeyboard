@@ -3,28 +3,44 @@
 
 """ Distribution script. """
 
-from distutils.core import setup
+import os
+import sys
+from setuptools import setup, find_packages
+
+HERE = os.path.abspath(os.path.dirname(__file__))
+sys.path.insert(0, HERE)  # To be able to import the package
+import pygame_vkeyboard
+
 
 setup(
-    name='pygame_vkeyboard',
-    packages=['pygame_vkeyboard'],
-    version='2.0.0',
-    description='''
-        Visual keyboard for Pygame engine. Aims to be easy to use as
-        highly customizable as well.
-    ''',
+    name='pygame-vkeyboard',
+    version=pygame_vkeyboard.__version__,
+    description=pygame_vkeyboard.__doc__,
+    long_description=open(os.path.join(HERE, 'README.md'), encoding='utf-8').read(),
+    long_description_content_type='text/markdown',
     author='Felix Voituret',
     author_email='felix.voituret@gmail.com',
     url='https://github.com/Faylixe/pygame_vkeyboard',
-    download_url='https://github.com/Faylixe/pygame_vkeyboard/tarball/1.1',
-    install_requires=[
-        'pygame',
-    ],
+    download_url='https://pypi.org/project/pygame-vkeyboard/#files',
+    license='Apache License 2.0',
     keywords=['pygame', 'keyboard'],
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: pygame'
     ],
-    include_package_data=True
+    packages=find_packages(exclude=['tests']),
+    include_package_data=True,
+    python_requires='>=2.7',
+    install_requires=[
+        'pygame',
+    ],
+    setup_requires=[
+        'setuptools>=38.6.0',
+        'wheel>=0.31.0'
+    ],
+    options={
+        'bdist_wheel':
+            {'universal': True}
+    },
 )
