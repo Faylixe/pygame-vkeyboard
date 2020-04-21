@@ -103,7 +103,7 @@ class VCursor(pygame.sprite.DirtySprite):
             self.index = index
             self.dirty = 1
 
-    def toggle(self):
+    def update(self, events):
         """Toggle visibility of the cursor."""
         self.clock.tick()
         self.switch_counter += self.clock.get_time()
@@ -291,8 +291,7 @@ class VTextInput(object):
             List of events to process.
         """
         if self.state > 0:
-            self.cursor.toggle()
-
+            self.sprites.update(events)
             for event in events:
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT:

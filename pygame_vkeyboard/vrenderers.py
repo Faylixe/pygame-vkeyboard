@@ -230,7 +230,6 @@ class VTextInputRenderer(object):
         text:
             Text to evaluate.
         """
-        print("get_text_width({})".format(text))
         return self.font.size(text)[0]
 
     def truncate(self, text, max_width, start=0, nearest=False):
