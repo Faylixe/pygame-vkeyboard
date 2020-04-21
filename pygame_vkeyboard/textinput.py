@@ -46,6 +46,19 @@ class TextInputRenderer(object):
         """
         return self.font.size(text)[0]
 
+    def truncate(self, text, max_width, start=0):
+        width = 0
+        end = len(text)
+        while start < end:
+            k = (start + end) // 2
+            width = self.get_text_width(text[:k+1])
+            print("Render in truncate", text[:k+1])
+            if width > max_width:
+                end = k
+            else:
+                start = k + 1
+        return text[:start], width
+
     def fit_font(self, size):
         """Set the size of the font to fit the rectangle with
         the given size.
@@ -123,7 +136,7 @@ class TextInputCursor(pygame.sprite.DirtySprite):
 
         # Blink management
         self.clock = pygame.time.Clock()
-        self.switch_ms = 500
+        self.switch_ms = 400
         self.switch_counter = 0
 
     def set_position(self, position):
@@ -136,8 +149,9 @@ class TextInputCursor(pygame.sprite.DirtySprite):
 
     def set_index(self, index):
         """Move the cursor at the given index"""
-        self.index = index
-        self.dirty = 1
+        if index != self.index:
+            self.index = index
+            self.dirty = 1
 
     def toggle(self):
         """Toggle visibility of the cursor"""
@@ -171,25 +185,16 @@ class TextInputLine(pygame.sprite.DirtySprite):
             self.dirty = 1
 
     def complete_line(self, text):
-        start, end = len(self.text), len(text)
-        width = self.rect.width
-        while start < end:
-            k = (start + end) // 2
-            width = self.renderer.get_text_width(text[:k+1])
-            if width > self.rect.width:
-                end = k
-            else:
-                start = k + 1
-
-        self.text = text[:start]
-        if text[start:]:
+        self.text, _ = self.renderer.truncate(text, self.rect.width,
+                                              len(self.text))
+        if text[len(self.text):]:
             self.full = True
         else:
             self.full = False
         self.dirty = 1
         self.visible = 1  # Show line
         self.renderer.draw_text(self.image, self.text)
-        return text[start:]
+        return text[len(self.text):]
 
     def clear(self):
         if self.text:
@@ -258,15 +263,14 @@ class TextInput(object):
             Events to process.
         """
         if self.state > 0:
-
             self.cursor.toggle()
 
             for event in events:
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT:
-                        self.move_cursor(-1)
+                        self.increment_cursor(-1)
                     if event.key == pygame.K_RIGHT:
-                        self.move_cursor(1)
+                        self.increment_cursor(1)
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     self.set_cursor(event.pos)
 
@@ -309,7 +313,7 @@ class TextInput(object):
         else:
             self.text += text
         self.update_lines()
-        self.move_cursor(1)
+        self.increment_cursor(1)
 
     def backspace(self):
         """Delete a character before the cursor position."""
@@ -317,9 +321,9 @@ class TextInput(object):
             return
         self.text = self.text[:self.cursor.index - 1] + self.text[self.cursor.index:]
         self.update_lines()
-        self.move_cursor(-1)
+        self.increment_cursor(-1)
 
-    def move_cursor(self, step):
+    def increment_cursor(self, step):
         """Move the cursor of one or more steps (but not beyond the text length)"""
         pos = max(0, self.cursor.index + step)
         self.cursor.set_index(min(pos, len(self.text)))
@@ -344,20 +348,12 @@ class TextInput(object):
         """
         lines = self.sprites.get_sprites_at(position)
         if lines:
-            currline = lines[0]
-            text_length = len(currline)
-
-            pos = 1
-            while pos < text_length:
-                width = self.renderer.get_text_width(currline.text[:pos])
-                if width >= position[0] - currline.rect.left:
-                    self.cursor.set_position((width, currline.rect.y + self.text_margin))
-                    break  # we found it
-                pos += 1
+            text, width = self.renderer.truncate(lines[0].text, position[0] - lines[0].rect.left)
+            self.cursor.set_position((width, lines[0].rect.y + self.text_margin))
 
             chars_counter = 0
             for line in self.sprites.get_sprites_from_layer(0):
-                if line == currline:
-                    self.cursor.set_index(chars_counter + pos)
+                if line == lines[0]:
+                    self.cursor.set_index(chars_counter + len(text))
                     break
                 chars_counter += len(line)
