@@ -30,13 +30,22 @@ def main(test=False):
     keyboard = vkboard.VKeyboard(screen, on_key_event, layout, show_text_input=True)
     keyboard.enable()
 
+    clock = pygame.time.Clock()
+
     # Main loop
     while True:
+        clock.tick(100)
 
-        for event in pygame.event.get():
-            keyboard.on_event(event)
+        events = pygame.event.get()
+
+        for event in events:
             if event.type == pygame.QUIT:
+                print("Average FPS: ", clock.get_fps())
                 exit()
+
+        keyboard.update(events)
+
+        keyboard.draw()
 
         # Flip surface
         pygame.display.flip()

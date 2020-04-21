@@ -664,7 +664,7 @@ class VKeyboardLayout(object):
                 - (self.padding * (r + 1))) / r
             height = self.key_size * r + self.padding * (r + 1)
             logger.warning('Normalized key_size to %spx', self.key_size)
-        self.set_size((surface_size[0], height), surface_size)
+        self.set_size((surface_size[0], int(height)), surface_size)
 
     def set_size(self, size, surface_size):
         """Sets the size of this layout, and updates
@@ -832,8 +832,7 @@ class VKeyboard(object):
                            self.surface.get_size())
         self.set_layout(layout)
 
-        self.input = TextInput(self.surface,
-                               (self.original_layout.position[0],
+        self.input = TextInput((self.original_layout.position[0],
                                 self.original_layout.position[1] - self.original_layout.key_size),
                                (self.original_layout.size[0],
                                 self.original_layout.key_size))
@@ -843,7 +842,7 @@ class VKeyboard(object):
     def invalidate(self):
         """Invalidates keyboard state, reset layout and redraw. """
         self.layout.invalidate()
-        self.draw()
+        self.internal_draw()
 
     def set_layout(self, layout):
         """Sets the layout this keyboard work with.
@@ -866,20 +865,18 @@ class VKeyboard(object):
         """Sets this keyboard as non active. """
         self.state = 0
 
-    def draw(self):
+    def internal_draw(self):
         """Draw the virtual keyboard into the delegate surface object
         if enabled.
         """
         if self.state > 0:
-            self.renderer.draw_background(
-                self.surface,
-                self.layout.position,
-                self.layout.size)
+            self.renderer.draw_background(self.surface,
+                                          self.layout.position,
+                                          self.layout.size)
+
             for row in self.layout.rows:
                 for key in row.keys:
                     self.renderer.draw_key(self.surface, key)
-
-            self.input.draw()
 
     def on_uppercase(self):
         """Uppercase key press handler. """
@@ -897,6 +894,15 @@ class VKeyboard(object):
             self.set_layout(self.original_layout)
         self.invalidate()
 
+    def update(self, events):
+        self.input.update(events)
+        for event in events:
+            self.on_event(event)
+
+    def draw(self):
+        rects = self.input.draw(self.surface)
+        pygame.display.update(rects)
+
     def on_event(self, event):
         """Pygame event processing callback method.
 
@@ -906,7 +912,6 @@ class VKeyboard(object):
             Event to process.
         """
         if self.state > 0:
-            self.input.on_event(event)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 key = self.layout.get_key_at(pygame.mouse.get_pos())
                 if key is not None:
