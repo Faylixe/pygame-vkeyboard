@@ -343,4 +343,4 @@ class VTextInputRenderer(object):
 # Default text renderer
 VTextInputRenderer.DEFAULT = VTextInputRenderer(
     osp.join(osp.dirname(__file__), 'DejaVuSans.ttf'),
-    (255, 255, 255), (255, 255, 255), (180, 180, 180), (0, 0, 0))
+    (0, 0, 0), (0, 0, 0), (255, 255, 255), (220, 220, 220))
