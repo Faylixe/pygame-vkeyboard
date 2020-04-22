@@ -1,6 +1,6 @@
 # pygame_vkeyboard
 
-[![PyPI version](https://badge.fury.io/py/pygame_vkeyboard.svg)](https://badge.fury.io/py/pygame_vkeyboard)
+[![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard)
 
 Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
