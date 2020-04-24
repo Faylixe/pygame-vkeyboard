@@ -5,6 +5,36 @@ import pygame  # pylint: disable=import-error
 from pygame_vkeyboard import vkeys
 
 
+def fit_font(font_name, max_height):
+    """Set the size of the font to fit the given height.
+
+    Parameters
+    ----------
+    font_name:
+        Path to font file for rendering key.
+    max_height:
+        Height to fit.
+    """
+    font = pygame.font.Font(font_name, 1)
+
+    # Ensure a large panel of characters heights
+    text = "?/|!()§&@0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN"
+
+    start = max_height // 2
+    end = max_height * 2
+
+    while start < end:
+        k = (start + end) // 2
+        font = pygame.font.Font(font_name, k)
+        height = font.size(text)[1]
+        if height > max_height:
+            end = k
+        else:
+            start = k + 1
+
+    return font
+
+
 class VKeyboardRenderer(object):
     """
     A VKeyboardRenderer is in charge of keyboard rendering.
@@ -47,7 +77,7 @@ class VKeyboardRenderer(object):
         self.special_key_background_color = special_key_background_color
         self.text_color = text_color
 
-    def draw_background(self, surface, position, size):
+    def draw_background(self, surface):
         """Default drawing method for background.
 
         Background is drawn as a simple rectangle filled using this
@@ -57,12 +87,8 @@ class VKeyboardRenderer(object):
         ----------
         surface:
             Surface background should be drawn in.
-        position:
-            Surface relative position the keyboard should be drawn at.
-        size:
-            Expected size of the drawn keyboard.
         """
-        pygame.draw.rect(surface, self.background_color, position + size)
+        surface.fill(self.background_color)
 
     def draw_key(self, surface, key):
         """Default drawing method for key.
@@ -105,17 +131,16 @@ class VKeyboardRenderer(object):
             special background color if available.
         """
         if not self.font:  # Initialize font if not done
-            self.font = pygame.font.Font(self.font_name, 25)
+            self.font = fit_font(self.font_name, key.rect.height)
 
         background_color = self.key_background_color
         if special and self.special_key_background_color is not None:
             background_color = self.special_key_background_color
-        pygame.draw.rect(surface,
-                         background_color[key.state],
-                         key.position + key.size)
+
+        surface.fill(background_color[key.state])
         text = self.font.render(str(key), 1, self.text_color[key.state])
-        x = key.position[0] + ((key.size[0] - text.get_width()) / 2)
-        y = key.position[1] + ((key.size[1] - text.get_height()) / 2)
+        x = (key.rect.width - text.get_width()) // 2
+        y = (key.rect.height - text.get_height()) // 2
         surface.blit(text, (x, y))
 
     def draw_space_key(self, surface, key):
@@ -233,11 +258,11 @@ class VTextInputRenderer(object):
         return self.font.size(text)[0]
 
     def truncate(self, text, max_width, start=0, nearest=False):
-        """Truncate the given text in aorder to fit the maximum
+        """Truncate the given text in order to fit the maximum
         given width.
 
         This function uses the binary search algorithm to go faster
-        than one-by-one try.
+        than a one-by-one try.
 
         Parameters
         ----------
@@ -248,8 +273,8 @@ class VTextInputRenderer(object):
         start:
             Index for searching the text part with correct width.
         nearest:
-            If True, the returned width can be higher than ``max_width``
-            to have the less abs(max_width - width).
+            If True, the returned text can have a width higher than
+            the ``max_width`` to reduce abs(max_width - width).
 
         Returns
         -------
@@ -278,27 +303,7 @@ class VTextInputRenderer(object):
 
         return text[:start], width
 
-    def fit_font(self, size):
-        """Set the size of the font to fit the rectangle of
-        the given size.
-
-        Parameters
-        ----------
-        size:
-            Size of the rectangle to fit.
-        """
-        self.font = pygame.font.Font(self.font_name, 1)
-
-        # Ensure a large panel of characters heights
-        text = "?/|!()§&@0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN"
-        i = 0
-        text_height = 0
-        while text_height < size[1]:
-            text_height = self.font.size(text)[1]
-            self.font = pygame.font.Font(self.font_name, i)
-            i += 1
-
-    def draw_border(self, surface):
+    def draw_background(self, surface):
         """Default drawing method for borders.
 
         Borders is drawn as a simple background rectangle filled using the
@@ -336,6 +341,8 @@ class VTextInputRenderer(object):
         text:
             Target text to be drawn.
         """
+        if not self.font:  # Initialize font if not done
+            self.font = fit_font(self.font_name, surface.get_height())
         surface.fill(self.background_color)
         surface.blit(self.font.render(text, 1, self.text_color), (0, 0))
 

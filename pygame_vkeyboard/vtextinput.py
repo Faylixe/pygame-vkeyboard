@@ -23,7 +23,7 @@ class VBackground(pygame.sprite.DirtySprite):
         super(VBackground, self).__init__()
         self.renderer = renderer
         self.image = pygame.Surface(size, pygame.SRCALPHA, 32)
-        self.renderer.draw_border(self.image)
+        self.renderer.draw_background(self.image)
         self.rect = pygame.Rect((0, 0), size)
 
     def set_rect(self, x, y, width, height):
@@ -46,7 +46,7 @@ class VBackground(pygame.sprite.DirtySprite):
         if self.rect.size != (width, height):
             self.rect.size = (width, height)
             self.image = pygame.Surface((width, height), pygame.SRCALPHA, 32)
-            self.renderer.draw_border(self.image)
+            self.renderer.draw_background(self.image)
             self.dirty = 1
 
 
@@ -234,10 +234,7 @@ class VTextInput(object):
         self.size = size  # One ligne size
         self.text = ''
         self.text_margin = border
-
-        # Initialize renderer
         self.renderer = renderer
-        self.renderer.fit_font((size[0] - 2 * self.text_margin, size[1] - 4))
 
         # Define background sprites
         self.eraser = None
@@ -267,18 +264,22 @@ class VTextInput(object):
         """Set this text input as non active."""
         self.state = 0
 
-    def draw(self, surface):
+    def draw(self, surface, force):
         """Draw the text input box.
 
         Parameters
         ----------
         surface:
             Surface on which the VTextInput is drawn.
+        force:
+            Force the drawing of the entire surface (time consuming).
         """
         if self.state > 0:
             if not self.eraser:
                 self.eraser = surface.copy()
                 self.sprites.clear(surface, self.eraser)
+            if force:
+                self.sprites.repaint_rect(self.background.rect)
             return self.sprites.draw(surface)
         return []
 

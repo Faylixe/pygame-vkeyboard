@@ -22,7 +22,7 @@ def main(test=False):
 
     # Init pygame
     pygame.init()
-    screen = pygame.display.set_mode((300, 400))
+    screen = pygame.display.set_mode((200, 400))
 
     # Create keyboard
     model = ['123', '456', '789', '*0#']
@@ -38,13 +38,17 @@ def main(test=False):
     # Main loop
     while True:
 
-        for event in pygame.event.get():
-            keyboard.on_event(event)
+        events = pygame.event.get()
+
+        for event in events:
             if event.type == pygame.QUIT:
                 exit()
 
-        # Flip surface
-        pygame.display.flip()
+        keyboard.update(events)
+        rects = keyboard.draw(screen)
+
+        # Flip only the updated area
+        pygame.display.update(rects)
 
         # At first loop returns
         if test:
