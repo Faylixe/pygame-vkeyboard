@@ -1,10 +1,15 @@
 # pygame_vkeyboard
 
-[![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard)
+![Python package](https://github.com/Faylixe/pygame_vkeyboard/workflows/Python%20package/badge.svg) [![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard)
 
 Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
-![Screenshot](https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png)
+<div align="center">
+    <img
+      src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png"
+      width="80%">
+    <p>Vitual keyboard with AZERTY layout</p>
+</div>
 
 ## Install
 
