@@ -1,4 +1,4 @@
-# pygame_vkeyboard
+# pygame-vkeyboard
 
 [![Python package](https://github.com/Faylixe/pygame_vkeyboard/workflows/Python%20package/badge.svg?branch=master)](https://github.com/Faylixe/pygame_vkeyboard/actions) [![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard)
 
@@ -22,7 +22,7 @@ pip install pygame-vkeyboard
 ``VKeyboard`` only require a pygame surface to be displayed on and a text consumer function, as in the following example :
 
 ```python
-from pygame_vkeyboard import *
+from pygame.vkeyboard import *
 
 # Initializes your window object or surface your want
 # vkeyboard to be displayed on top of.
@@ -114,9 +114,9 @@ Several examples are provided with the **pygame_vkeyboard** library.
 To run the examples, simply execute these commands in a terminal:
 
 ```bash
-python -m pygame_vkeyboard.examples.azerty
-python -m pygame_vkeyboard.examples.numeric
-python -m pygame_vkeyboard.examples.textinput
+python -m pygame.vkeyboard.examples.azerty
+python -m pygame.vkeyboard.examples.numeric
+python -m pygame.vkeyboard.examples.textinput
 ```
 
 ## Contributing

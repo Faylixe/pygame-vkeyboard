@@ -3,8 +3,10 @@
 
 """ Simple keyboard usage using AZERTY layout. """
 
-import pygame  # pylint: disable=import-error
-import pygame_vkeyboard as vkboard
+# pylint: disable=import-error
+import pygame
+import pygame.vkeyboard as vkboard
+# pylint: enable=import-error
 
 
 def on_key_event(text):
