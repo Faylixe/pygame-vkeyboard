@@ -96,7 +96,7 @@ Please note that the default renderer implementation require a unicode font.
 
 You can also create your own renderer. Just override ``VKeyboardRenderer``class and override any of the following methods :
 
-- **draw_background(surface, position, size)**: Draws the background of the keyboard.
+- **draw_background(surface)**: Draws the background of the keyboard.
 - **draw_character_key(surface, key, special=False)**: Draws a key based on character value.
 - **draw_space_key(surface, key)**: Draws space bar.
 - **draw_back_key(surface, key)**: Draws back key.

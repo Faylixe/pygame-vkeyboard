@@ -4,7 +4,7 @@
 import pygame  # pylint: disable=import-error
 
 
-class VKey(object):
+class VKey(pygame.sprite.DirtySprite):
     """
     Simple key holder class.
 
@@ -23,17 +23,14 @@ class VKey(object):
             Visual representation of the key displayed to the screen
             (equal to the value if not given).
         """
+        super(VKey, self).__init__()
         self.state = 0
         self.value = value
         self.symbol = symbol
-        self.position = (0, 0)
-        self.size = (0, 0)
-
-    def __eq__(self, other):
-        """Return True if self equal other"""
-        if isinstance(other, VKey):
-            return self.value == other.value
-        return self.value == other
+        self.rect = pygame.Rect((0, 0), (10, 10))
+        self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA, 32)
+        self.renderer = None
+        self.pressed_key = None
 
     def __str__(self):
         """Key representation when using str() or print()"""
@@ -41,34 +38,91 @@ class VKey(object):
             return self.symbol
         return self.value
 
-    def set_size(self, size):
-        """Sets the size of this key.
+    def set_position(self, x, y):
+        """Set the key position.
 
         Parameters
         ----------
-        size:
-            Size of this key.
+        x:
+            Position x.
+        y:
+            Position y.
         """
-        self.size = (size, size)
+        if self.rect.topleft != (x, y):
+            self.rect.topleft = (x, y)
+            self.dirty = 1
 
-    def is_touched(self, position):
-        """Hit detection method.
-
-        Indicates if this key has been hit by a touch / click event at the
-        given position.
+    def set_size(self, width, height):
+        """Set the key size.
 
         Parameters
         ----------
-        position:
-            Event position.
-
-        Returns
-        -------
-        is_touched:
-            True is the given position collide this key, False otherwise.
+        width:
+            Background width.
+        height:
+            Background height.
         """
-        return all((position[0] >= self.position[0],
-                    position[0] <= self.position[0] + self.size[0]))
+        if self.rect.size != (width, height):
+            self.rect.size = (width, height)
+            self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA, 32)
+            self.renderer.draw_key(self.image, self)
+            self.dirty = 1
+
+    def set_uppercase(self, uppercase):
+        """Set key uppercase state and redraws it.
+
+        Parameters
+        ----------
+        uppercase:
+            True if uppercase, False otherwise.
+        """
+        if uppercase:
+            new_value = self.value.upper()
+        else:
+            new_value = self.value.lower()
+        if new_value != self.value:
+            self.value = new_value
+            self.renderer.draw_key(self.image, self)
+            self.dirty = 1
+
+    def set_pressed(self, state):
+        """Set the key state (1 for pressed 0 for released)
+        and redraws it.
+
+        Parameters
+        ----------
+        state:
+            New key state.
+        """
+        if self.state != int(state):
+            self.state = int(state)
+            self.renderer.draw_key(self.image, self)
+            self.dirty = 1
+
+    def update(self, events):
+        """Pygame events processing callback method.
+
+        Parameters
+        ----------
+        events:
+            List of events to process.
+        """
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.rect.collidepoint(event.pos):
+                    self.set_pressed(1)
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.set_pressed(0)
+            if event.type == pygame.KEYDOWN:
+                if event.unicode and event.unicode == self.value:
+                    self.set_pressed(1)
+                    self.pressed_key = event.key
+                elif event.key == self.value:
+                    self.set_pressed(1)
+                    self.pressed_key = event.key
+            elif event.type == pygame.KEYUP and self.pressed_key is not None:
+                self.set_pressed(0)
+                self.pressed_key = None
 
     def update_buffer(self, buffer):
         """Text update method.
@@ -103,15 +157,21 @@ class VSpaceKey(VKey):
         VKey.__init__(self, ' ', u'space')
         self.length = length
 
-    def set_size(self, size):
+    def set_uppercase(self, uppercase):
+        """Nothing to do on upper case action."""
+        pass
+
+    def set_size(self,  width, height):
         """Sets the size of this key.
 
         Parameters
         ----------
-        size:
-            Size of this key.
+        width:
+            Background width.
+        height:
+            Background height.
         """
-        self.size = (size * self.length, size)
+        super(VSpaceKey, self).set_size(width * self.length, height)
 
 
 class VBackKey(VKey):
@@ -120,6 +180,10 @@ class VBackKey(VKey):
     def __init__(self):
         """Default constructor. """
         VKey.__init__(self, u'\x7f', u'\u2190')
+
+    def set_uppercase(self, uppercase):
+        """Nothing to do on upper case action."""
+        pass
 
     def update_buffer(self, buffer):
         """Text update method. Removes last character.
@@ -153,16 +217,38 @@ class VActionKey(VKey):
         state_holder:
             Holder for this key state (activated or not).
         """
-        VKey.__init__(self, '', symbol)
+        super(VActionKey, self).__init__('', symbol)
         self.action = action
         self.state_holder = state_holder
         self.activated_symbol = activated_symbol
+        self.activated = False
 
     def __str__(self):
         """Key representation when using str() or print()"""
         if self.is_activated():
+            self.activated = True
             return self.activated_symbol
         return self.symbol
+
+    def update(self, events):
+        """Check if state holder has changed."""
+        super(VActionKey, self).update(events)
+        if self.activated != self.is_activated() and not self.dirty:
+            self.activated = self.is_activated()
+            self.renderer.draw_key(self.image, self)
+            self.dirty = 1
+
+    def set_uppercase(self, uppercase):
+        """Nothing to do on upper case action."""
+        pass
+
+    def set_pressed(self, state):
+        """Nothing to do on upper case action."""
+        prev_state = self.state
+        super(VActionKey, self).set_pressed(state)
+        if prev_state != self.state and self.state == 0:
+            # The key is getting unpressed
+            self.action()
 
     def is_activated(self):
         """Indicates if this key is activated.
@@ -187,7 +273,6 @@ class VActionKey(VKey):
         buffer:
             Buffer provided as parameter.
         """
-        self.action()
         return buffer
 
 

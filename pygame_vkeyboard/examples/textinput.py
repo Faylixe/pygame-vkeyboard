@@ -34,7 +34,7 @@ def main(test=False):
 
     # Main loop
     while True:
-        clock.tick(100)
+        clock.tick(100)  # Ensure not exceed 100 FPS
 
         events = pygame.event.get()
 
@@ -44,10 +44,10 @@ def main(test=False):
                 exit()
 
         keyboard.update(events)
-        keyboard.draw()
+        rects = keyboard.draw(screen)
 
-        # Flip surface
-        pygame.display.flip()
+        # Flip only the updated area
+        pygame.display.update(rects)
 
         # At first loop returns
         if test:
