@@ -16,9 +16,9 @@ jobs:
     - name: Install SDL
       run: sudo apt update && sudo apt install -y libsdl-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsmpeg-dev libportmidi-dev libavformat-dev libswscale-dev
     - name: Install Python tools
-      run: pip install --upgrade pip && pip install -U setuptools wheel twine pygame
+      run: python -m pip install --upgrade pip && python -m pip install -U setuptools wheel twine pygame
     - name: Build sdist
-      run: python setup.py check && python setup.py sdist
+      run: python setup.py check -r -s && python setup.py sdist
     - name: Publish to PyPi
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
