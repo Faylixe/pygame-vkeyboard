@@ -8,13 +8,13 @@ from setuptools import setup, find_packages
 import src
 
 here = abspath(dirname(__file__))
-with open(join(here, 'README.md'), 'r') as stream:
+with open(join(here, 'README.md'), 'r', encoding='utf-8') as stream:
     readme = stream.read()
 
 setup(
     name='pygame-vkeyboard',
     version=src.__version__,
-    description=src.__doc__,
+    description='Visual keyboard for Pygame',
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Felix Voituret',
