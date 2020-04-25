@@ -35,8 +35,8 @@ setup(
         'pygame',
     ],
     setup_requires=[
-        'setuptools>=38.6.0',
-        'wheel>=0.31.0'
+        'setuptools>=41.0.1',
+        'wheel>=0.33.4'
     ],
     options={
         'bdist_wheel':
