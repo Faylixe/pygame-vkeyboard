@@ -14,7 +14,7 @@ jobs:
       with:
         python-version: '3.x'
     - name: Install SDL
-      run: sudo apt update && sudo apt install -y libsdl-dev
+      run: sudo apt update && sudo apt install -y libsdl-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev libsmpeg-dev libportmidi-dev libavformat-dev libswscale-dev
     - name: Install Python tools
       run: pip install --upgrade pip && pip install -U setuptools wheel twine pygame
     - name: Build sdist
