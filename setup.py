@@ -14,7 +14,7 @@ with open(join(here, 'README.md'), 'r', encoding='utf-8') as stream:
 setup(
     name='pygame-vkeyboard',
     version=src.__version__,
-    description='Visual keyboard for Pygame',
+    description=src.__doc__.split()[0],
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Felix Voituret',
