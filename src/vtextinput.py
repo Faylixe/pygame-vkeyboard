@@ -1,7 +1,12 @@
+#!/usr/bin/env python
 # coding: utf8
 
+"""
+    TODO: document
+"""
 import pygame  # pylint: disable=import-error
-from pygame_vkeyboard.vrenderers import VTextInputRenderer
+
+from .vrenderers import VTextInputRenderer
 
 
 class VBackground(pygame.sprite.DirtySprite):
@@ -248,12 +253,16 @@ class VTextInput(object):
         # Initialize first line
         line = VLine((self.size[0] - 2 * self.text_margin,
                       self.size[1]), renderer, True)
-        line.set_position((self.position[0] + self.text_margin, self.position[1] - self.text_margin))
+        line.set_position((
+            self.position[0] + self.text_margin,
+            self.position[1] - self.text_margin))
         self.sprites.add(line, layer=1)
 
         # Initialize cursor
         self.cursor = VCursor((2, size[1] - self.text_margin * 2), renderer)
-        self.cursor.set_position((self.position[0] + self.text_margin, self.position[1]))
+        self.cursor.set_position((
+            self.position[0] + self.text_margin,
+            self.position[1]))
         self.sprites.add(self.cursor, layer=2)
 
     def enable(self):
@@ -361,7 +370,9 @@ class VTextInput(object):
         """
         if self.cursor.index < len(self.text):
             # Inserting in the text
-            self.text = self.text[:self.cursor.index] + text + self.text[self.cursor.index:]
+            prefix = self.text[:self.cursor.index]
+            suffix = self.text[self.cursor.index:]
+            self.text = prefix + text + suffix
         else:
             self.text += text
         self.update_lines()
@@ -371,7 +382,9 @@ class VTextInput(object):
         """Delete a character before the cursor position."""
         if self.cursor.index == 0:
             return
-        self.text = self.text[:self.cursor.index - 1] + self.text[self.cursor.index:]
+        prefix = self.text[:self.cursor.index - 1]
+        suffix = self.text[self.cursor.index:]
+        self.text = prefix + suffix
         self.update_lines()
         self.increment_cursor(-1)
 
@@ -392,7 +405,8 @@ class VTextInput(object):
         for line in self.sprites.get_sprites_from_layer(1):
             if chars_counter + len(line) >= self.cursor.index:
                 idx = self.cursor.index - chars_counter
-                x = self.text_margin + self.renderer.get_text_width(line.text[:idx])
+                x = self.text_margin + self.renderer.get_text_width(
+                    line.text[:idx])
                 self.cursor.set_position((x, line.rect.y + self.text_margin))
                 break
             chars_counter += len(line)
@@ -407,11 +421,13 @@ class VTextInput(object):
         """
         for collide in self.sprites.get_sprites_at(position):
             if isinstance(collide, VLine):
-                text, width = self.renderer.truncate(collide.text,
-                                                     position[0] - collide.rect.left,
-                                                     nearest=True)
-                self.cursor.set_position((width + self.text_margin, collide.rect.y + self.text_margin))
-
+                text, width = self.renderer.truncate(
+                    collide.text,
+                    position[0] - collide.rect.left,
+                    nearest=True)
+                self.cursor.set_position((
+                    width + self.text_margin,
+                    collide.rect.y + self.text_margin))
                 chars_counter = 0
                 for line in self.sprites.get_sprites_from_layer(1):
                     if line == collide:

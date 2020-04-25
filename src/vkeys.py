@@ -1,5 +1,9 @@
+#!/usr/bin/env python
 # coding: utf8
 
+"""
+    TODO: Document.
+"""
 
 import pygame  # pylint: disable=import-error
 
@@ -258,7 +262,8 @@ class VActionKey(VKey):
         is_activated: bool
             True if activated, False otherwise.
         """
-        raise NotImplementedError("Method 'is_activated' have to be overwritten")
+        raise NotImplementedError(
+            "Method 'is_activated' have to be overwritten")
 
     def update_buffer(self, buffer):
         """Do not update text but trigger the delegate action.
@@ -280,7 +285,11 @@ class VUppercaseKey(VActionKey):
     """Action key for the uppercase switch. """
 
     def __init__(self, action, state_holder):
-        super(VUppercaseKey, self).__init__(action, state_holder, u'\u21e7', u'\u21ea')
+        super(VUppercaseKey, self).__init__(
+            action,
+            state_holder,
+            u'\u21e7',
+            u'\u21ea')
         self.value = pygame.K_LSHIFT
 
     def is_activated(self):
@@ -298,7 +307,11 @@ class VSpecialCharKey(VActionKey):
     """Action key for the special char switch. """
 
     def __init__(self, action, state_holder):
-        super(VSpecialCharKey, self).__init__(action, state_holder, u'#', u'Ab')
+        super(VSpecialCharKey, self).__init__(
+            action,
+            state_holder,
+            u'#',
+            u'Ab')
 
     def is_activated(self):
         """Indicates if this key is activated.

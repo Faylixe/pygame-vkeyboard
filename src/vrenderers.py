@@ -1,8 +1,14 @@
+#!/usr/bin/env python
 # coding: utf8
+
+"""
+    TODO: Document.
+"""
 
 import os.path as osp
 import pygame  # pylint: disable=import-error
-from pygame_vkeyboard import vkeys
+
+from .vkeyboard import vkeys
 
 
 def fit_font(font_name, max_height):
@@ -18,7 +24,7 @@ def fit_font(font_name, max_height):
     font = pygame.font.Font(font_name, 1)
 
     # Ensure a large panel of characters heights
-    text = "?/|!()§&@0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN"
+    text = "?/|!()§&@0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN"  # noqa
 
     start = max_height // 2
     end = max_height * 2

@@ -28,9 +28,9 @@ keyboard.enable()
 import logging
 import pygame  # pylint: disable=import-error
 
-from pygame_vkeyboard import vkeys
-from pygame_vkeyboard.vrenderers import VKeyboardRenderer
-from pygame_vkeyboard.vtextinput import VTextInput, VBackground
+from . import vkeys
+from .vrenderers import VKeyboardRenderer
+from .vtextinput import VTextInput, VBackground
 
 
 # Configure logger.
@@ -56,16 +56,18 @@ def synchronize_layouts(surface_size, *layouts):
 
     for layout in layouts:
         if layout.key_size != layout_ref.key_size:
-            logging.warning('Normalizing layout%s key size to %spx (from layout%s)',
-                            layouts.index(layout),
-                            layout_ref.key_size,
-                            layouts.index(layout_ref))
+            logging.warning(
+                'Normalizing layout%s key size to %spx (from layout%s)',
+                layouts.index(layout),
+                layout_ref.key_size,
+                layouts.index(layout_ref))
             layout.key_size = layout_ref.key_size
         if layout.size != layout_ref.size:
-            logging.warning('Normalizing layout%s size to %s*%spx (from layout%s)',
-                            layouts.index(layout),
-                            layout_ref.size[0], layout_ref.size[1],
-                            layouts.index(layout_ref))
+            logging.warning(
+                'Normalizing layout%s size to %s*%spx (from layout%s)',
+                layouts.index(layout),
+                layout_ref.size[0], layout_ref.size[1],
+                layouts.index(layout_ref))
 
         # Compute all internal values of the layout
         layout.set_size(layout_ref.size, surface_size)
@@ -254,9 +256,11 @@ class VKeyboardLayout(object):
         # Create special keys list
         special_keys = [vkeys.VBackKey()]
         if self.allow_uppercase:
-            special_keys.append(vkeys.VUppercaseKey(keyboard.on_uppercase, keyboard))
+            special_keys.append(
+                vkeys.VUppercaseKey(keyboard.on_uppercase, keyboard))
         if self.allow_special_chars:
-            special_keys.append(vkeys.VSpecialCharKey(keyboard.on_special_char, keyboard))
+            special_keys.append(
+                vkeys.VSpecialCharKey(keyboard.on_special_char, keyboard))
         self.sprites.add(*special_keys, layer=1)
 
         # Dispatch special keys in the layout
@@ -294,8 +298,9 @@ class VKeyboardLayout(object):
         """
         r = len(self.rows)
         if self.key_size is None:
-            self.key_size = int((surface_size[0]
-                                 - (self.padding * (self.max_length + 1))) / self.max_length)
+            self.key_size = int(
+                (surface_size[0] - (self.padding * (self.max_length + 1)))
+                / self.max_length)
         height = self.key_size * r + self.padding * (r + 1)
         if height >= surface_size[1] / 2:
             self.key_size = int(((surface_size[1] / 2)
@@ -428,15 +433,17 @@ class VKeyboard(object):
         synchronize_layouts(self.surface.get_size(), self.original_layout,
                             self.special_char_layout)
 
-        self.background = VBackground(self.surface.get_rect().size, self.renderer)
+        self.background = VBackground(
+            self.surface.get_rect().size,
+            self.renderer)
         self.background.set_rect(*self.layout.position + self.layout.size)
         self.original_layout.sprites.add(self.background, layer=0)
         self.special_char_layout.sprites.add(self.background, layer=0)
 
-        self.input = VTextInput((self.original_layout.position[0],
-                                 self.original_layout.position[1] - self.original_layout.key_size),
-                                (self.original_layout.size[0],
-                                 self.original_layout.key_size))
+        self.input = VTextInput((
+            self.original_layout.position[0],
+            self.original_layout.position[1] - self.original_layout.key_size),
+            (self.original_layout.size[0], self.original_layout.key_size))
 
         if show_text_input:
             self.input.enable()
