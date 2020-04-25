@@ -2,21 +2,20 @@
 # coding: utf8
 
 """ Distribution script. """
-
-import os
-import sys
+from os.path import abspath, dirname, join
 from setuptools import setup, find_packages
 
-HERE = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, HERE)  # To be able to import the package
 import pygame_vkeyboard
 
+here = abspath(dirname(__file__))
+with open(join(here, 'README.md'), 'r') as stream:
+    readme = stream.read()
 
 setup(
     name='pygame-vkeyboard',
     version=pygame_vkeyboard.__version__,
     description=pygame_vkeyboard.__doc__,
-    long_description=open(os.path.join(HERE, 'README.md'), encoding='utf-8').read(),
+    long_description=readme,
     long_description_content_type='text/markdown',
     author='Felix Voituret',
     author_email='felix.voituret@gmail.com',
