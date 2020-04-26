@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding: utf8
 
-""" Simple keyboard usage using custom numeric layout. """
+""" Simple keyboard usage using AZERTY layout. """
 
 # pylint: disable=import-error
 import pygame
-import pygame.vkeyboard as vkboard
+import pygame_vkeyboard as vkboard
 # pylint: enable=import-error
 
 
@@ -24,33 +24,27 @@ def main(test=False):
 
     # Init pygame
     pygame.init()
-    screen = pygame.display.set_mode((200, 400))
+    screen = pygame.display.set_mode((600, 400))
 
     # Create keyboard
-    model = ['123', '456', '789', '*0#']
-    layout = vkboard.VKeyboardLayout(
-        model,
-        key_size=40,
-        allow_uppercase=False,
-        allow_special_chars=False,
-        allow_space=False)
+    layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
     keyboard = vkboard.VKeyboard(screen, on_key_event, layout)
     keyboard.enable()
 
+    clock = pygame.time.Clock()
+
     # Main loop
     while True:
+        clock.tick(100)  # Ensure not exceed 100 FPS
 
-        events = pygame.event.get()
-
-        for event in events:
+        for event in pygame.event.get():
+            keyboard.on_event(event)
             if event.type == pygame.QUIT:
+                print("Average FPS: ", clock.get_fps())
                 exit()
 
-        keyboard.update(events)
-        rects = keyboard.draw(screen)
-
-        # Flip only the updated area
-        pygame.display.update(rects)
+        # Flip the entire surface
+        pygame.display.flip()
 
         # At first loop returns
         if test:

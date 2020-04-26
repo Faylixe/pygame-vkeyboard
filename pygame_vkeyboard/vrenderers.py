@@ -8,7 +8,7 @@
 import os.path as osp
 import pygame  # pylint: disable=import-error
 
-from .vkeyboard import vkeys
+from . import vkeys
 
 
 def fit_font(font_name, max_height):
