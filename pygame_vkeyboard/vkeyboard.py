@@ -443,7 +443,8 @@ class VKeyboard(object):
         self.input = VTextInput((
             self.original_layout.position[0],
             self.original_layout.position[1] - self.original_layout.key_size),
-            (self.original_layout.size[0], self.original_layout.key_size))
+            (self.original_layout.size[0], self.original_layout.key_size),
+            renderer=self.renderer)
 
         if show_text_input:
             self.input.enable()
