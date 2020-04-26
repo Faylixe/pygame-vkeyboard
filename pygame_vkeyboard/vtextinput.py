@@ -2,8 +2,10 @@
 # coding: utf8
 
 """
-    TODO: document
+Text box to display the current text. The mouse events are
+supported to move the cursor at the desired place.
 """
+
 import pygame  # pylint: disable=import-error
 
 from .vrenderers import VTextInputRenderer

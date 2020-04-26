@@ -5,7 +5,7 @@
 
 # pylint: disable=import-error
 import pygame
-import pygame.vkeyboard as vkboard
+import pygame_vkeyboard as vkboard
 # pylint: enable=import-error
 
 
@@ -24,11 +24,16 @@ def main(test=False):
 
     # Init pygame
     pygame.init()
-    screen = pygame.display.set_mode((600, 400))
+    screen = pygame.display.set_mode((300, 400))
+    screen.fill((20, 100, 100))
 
     # Create keyboard
-    layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
-    keyboard = vkboard.VKeyboard(screen, on_key_event, layout)
+    layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.QWERTY)
+    keyboard = vkboard.VKeyboard(
+        screen,
+        on_key_event,
+        layout,
+        show_text_input=True)
     keyboard.enable()
 
     clock = pygame.time.Clock()
@@ -37,14 +42,18 @@ def main(test=False):
     while True:
         clock.tick(100)  # Ensure not exceed 100 FPS
 
-        for event in pygame.event.get():
-            keyboard.on_event(event)
+        events = pygame.event.get()
+
+        for event in events:
             if event.type == pygame.QUIT:
                 print("Average FPS: ", clock.get_fps())
                 exit()
 
-        # Flip the entire surface
-        pygame.display.flip()
+        keyboard.update(events)
+        rects = keyboard.draw(screen)
+
+        # Flip only the updated area
+        pygame.display.update(rects)
 
         # At first loop returns
         if test:

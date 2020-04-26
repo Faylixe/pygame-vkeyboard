@@ -2,13 +2,14 @@
 # coding: utf8
 
 """
-    TODO: Document.
+Renderer for the keyboard and the text box used to display
+the current text.
 """
 
 import os.path as osp
 import pygame  # pylint: disable=import-error
 
-from .vkeyboard import vkeys
+from . import vkeys
 
 
 def fit_font(font_name, max_height):
