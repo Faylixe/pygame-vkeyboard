@@ -9,7 +9,7 @@ as highly customizable as well.
 on and a text consumer function, as in the following example :
 
 ```python
-from pygame_vkeyboard import *
+from pygame_vkeyboard import VKeyboard, VKeyboardLayout
 
 # Initializes your window object or surface your want
 # vkeyboard to be displayed on top of.

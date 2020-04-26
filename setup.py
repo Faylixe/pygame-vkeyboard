@@ -2,6 +2,7 @@
 # coding: utf8
 
 """ Distribution script. """
+
 import sys
 from os.path import abspath, dirname, join
 from setuptools import setup, find_packages

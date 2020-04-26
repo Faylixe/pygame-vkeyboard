@@ -2,7 +2,8 @@
 # coding: utf8
 
 """
-    TODO: Document.
+Renderer for the keyboard and the text box used to display
+the current text.
 """
 
 import os.path as osp

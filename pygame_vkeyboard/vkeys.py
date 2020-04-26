@@ -2,7 +2,15 @@
 # coding: utf8
 
 """
-    TODO: Document.
+Module for keys definitions. It contains the following classes:
+
+- `VKey`           : base class for all keys
+- `VSpaceKey`      : *space* key definition
+- `VBackKey`       : *delete* key definition
+
+- `VActionKey`     : base class for key without effect on text
+- `VUppercaseKey`  : *shift* key definition
+- `VSpecialCharKey`: change the keyboard layout
 """
 
 import pygame  # pylint: disable=import-error
@@ -128,7 +136,7 @@ class VKey(pygame.sprite.DirtySprite):
                 self.set_pressed(0)
                 self.pressed_key = None
 
-    def update_buffer(self, buffer):
+    def update_buffer(self, string):
         """Text update method.
 
         Aims to be called internally when a key collision has been detected.
@@ -136,15 +144,15 @@ class VKey(pygame.sprite.DirtySprite):
 
         Parameters
         ----------
-        buffer:
+        string:
             Buffer to be updated.
 
         Returns
         -------
-        buffer:
+        string:
             Updated buffer value.
         """
-        return buffer + self.value
+        return string + self.value
 
 
 class VSpaceKey(VKey):
@@ -189,20 +197,20 @@ class VBackKey(VKey):
         """Nothing to do on upper case action."""
         pass
 
-    def update_buffer(self, buffer):
+    def update_buffer(self, string):
         """Text update method. Removes last character.
 
         Parameters
         ----------
-        buffer:
+        string:
             Buffer to be updated.
 
         Returns
         -------
-        buffer:
+        string:
             Updated buffer value.
         """
-        return buffer[:-1]
+        return string[:-1]
 
 
 class VActionKey(VKey):
@@ -265,31 +273,30 @@ class VActionKey(VKey):
         raise NotImplementedError(
             "Method 'is_activated' have to be overwritten")
 
-    def update_buffer(self, buffer):
+    def update_buffer(self, string):
         """Do not update text but trigger the delegate action.
 
         Parameters
         ----------
-        buffer:
+        string:
             Not used, just to match parent interface.
 
         Returns
         -------
-        buffer:
+        string:
             Buffer provided as parameter.
         """
-        return buffer
+        return string
 
 
 class VUppercaseKey(VActionKey):
     """Action key for the uppercase switch. """
 
     def __init__(self, action, state_holder):
-        super(VUppercaseKey, self).__init__(
-            action,
-            state_holder,
-            u'\u21e7',
-            u'\u21ea')
+        super(VUppercaseKey, self).__init__(action,
+                                            state_holder,
+                                            u'\u21e7',
+                                            u'\u21ea')
         self.value = pygame.K_LSHIFT
 
     def is_activated(self):
@@ -307,11 +314,10 @@ class VSpecialCharKey(VActionKey):
     """Action key for the special char switch. """
 
     def __init__(self, action, state_holder):
-        super(VSpecialCharKey, self).__init__(
-            action,
-            state_holder,
-            u'#',
-            u'Ab')
+        super(VSpecialCharKey, self).__init__(action,
+                                              state_holder,
+                                              u'#',
+                                              u'Ab')
 
     def is_activated(self):
         """Indicates if this key is activated.
