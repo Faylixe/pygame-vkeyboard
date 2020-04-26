@@ -8,7 +8,7 @@ supported to move the cursor at the desired place.
 
 import pygame  # pylint: disable=import-error
 
-from .vrenderers import VTextInputRenderer
+from .vrenderers import VKeyboardRenderer
 
 
 class VBackground(pygame.sprite.DirtySprite):
@@ -221,7 +221,7 @@ class VTextInput(object):
                  position,
                  size,
                  border=2,
-                 renderer=VTextInputRenderer.DEFAULT):
+                 renderer=VKeyboardRenderer.DEFAULT):
         """Default constructor.
 
         Parameters

@@ -1,14 +1,18 @@
 # pygame-vkeyboard
 
-[![Python package](https://github.com/Faylixe/pygame_vkeyboard/workflows/Python%20package/badge.svg?branch=master)](https://github.com/Faylixe/pygame_vkeyboard/actions) [![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard)
+[![Python package](https://github.com/Faylixe/pygame_vkeyboard/workflows/Python%20package/badge.svg?branch=master)](https://github.com/Faylixe/pygame_vkeyboard/actions) [![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard) [![PyPI downloads](https://img.shields.io/pypi/dm/pygame-vkeyboard?color=purple)](https://pypi.org/project/pibooth)
 
 Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
 <div align="center">
-    <img
-      src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png"
-      width="80%">
-    <p>Vitual keyboard with AZERTY layout</p>
+    <table>
+    <tr>
+        <td><img src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png">
+        </td>
+        <td><img src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/vkeyboard_textinput.gif">
+        </td>
+    </tr>
+    </table>
 </div>
 
 ## Install
@@ -49,9 +53,14 @@ A ``VKeyboard`` object handles the following pygame event :
 In order to process those events, keyboard instance event handling method should be called like in the following example:
 
 ```python
-for event in pygame.event.get():
-   keyboard.on_event(event)
-   # Perform your other event handling here.
+while True:
+
+    events = pygame.event.get()
+
+    keyboard.update(events)
+    keyboard.draw(surface)
+
+    # Perform other tasks here
 ```
 
 It will update key state accordingly as the keyboard buffer as well. Buffer modification will be notified
@@ -80,18 +89,32 @@ layout = VKeyboardLayout(model)
 ## Custom rendering using VKeyboardRenderer
 
 If you want to customize keyboard rendering you could provide a ``VKeyboardRenderer`` instance at ``VKeyboard``construction.
-A ``VKeyboardRenderer`` can be built using following constructor :
+
+```python
+keyboard = VKeyboard(surface, consumer, layout, renderer=VKeyboardRenderer.DARK)
+```
+
+Here is the list of default renderers provided with ``pygame-vkeyboard``:
+
+    - VKeyboardRenderer.DEFAULT
+    - VKeyboardRenderer.DARK
+
+A custom ``VKeyboardRenderer`` can be built using following constructor :
 
 ```python
 renderer = VKeyboardRenderer(
-    # Key font.
-    pygame.font.SysFont('arial', 20),
+    # Key font name/path.
+    'arial',
+    # Text color for key (one per state as for the key background).
+    ((0, 0, 0), (255, 255, 255)),
+    # Text input cursor color.
+    (0, 0, 0),
     # Keyboard background color.
     (50, 50, 50),
     # Key background color (one per state, 0 for released, 1 for pressed).
     ((255, 255, 255), (0, 0, 0)),
-    # Text color for key (one per state as for the key background).
-    ((0, 0, 0), (255, 255, 255)),
+    # Text input background color.
+    (220, 220, 220),
     # (Optional) special key background color.
     ((255, 255, 255), (0, 0, 0)),
 )
@@ -102,6 +125,8 @@ Please note that the default renderer implementation require a unicode font.
 You can also create your own renderer. Just override ``VKeyboardRenderer``class and override any of the following methods :
 
 - **draw_background(surface)**: Draws the background of the keyboard.
+- **draw_text(surface, text)**: Draws the text of the text input box.
+- **draw_cursor(surface)**: Draws the cursor of the text input box.
 - **draw_character_key(surface, key, special=False)**: Draws a key based on character value.
 - **draw_space_key(surface, key)**: Draws space bar.
 - **draw_back_key(surface, key)**: Draws back key.
