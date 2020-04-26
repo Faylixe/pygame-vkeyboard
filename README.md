@@ -105,17 +105,17 @@ A custom ``VKeyboardRenderer`` can be built using following constructor :
 renderer = VKeyboardRenderer(
     # Key font name/path.
     'arial',
-    # Text color for key (one per state as for the key background).
+    # Text color for key (one per state, 0 for released, 1 for pressed).
     ((0, 0, 0), (255, 255, 255)),
     # Text input cursor color.
     (0, 0, 0),
     # Keyboard background color.
     (50, 50, 50),
-    # Key background color (one per state, 0 for released, 1 for pressed).
+    # Key background color (one per state, as for the text color).
     ((255, 255, 255), (0, 0, 0)),
     # Text input background color.
     (220, 220, 220),
-    # (Optional) special key background color.
+    # Optional special key background color (one per state, as for the text color).
     ((255, 255, 255), (0, 0, 0)),
 )
 ```
