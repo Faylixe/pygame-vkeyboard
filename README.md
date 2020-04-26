@@ -7,7 +7,7 @@ Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable
 <div align="center">
     <table>
     <tr>
-        <td><img src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png" width="60%">
+        <td><img src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png" width="80%">
         </td>
         <td><img src="https://github.com/Faylixe/pygame-vkeyboard/blob/master/screenshot/vkeyboard_textinput.gif?raw=true">
         </td>
