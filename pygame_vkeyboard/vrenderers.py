@@ -71,17 +71,18 @@ class VKeyboardRenderer(object):
         font_name:
             Path to font file for rendering key.
         text_color:
-            List of RGB tuples for text color (one value per state).
+            List of RGB tuples for text color (one tuple per state).
         cursor_color:
             RGB tuple for cursor color of text input.
         background_color:
             RGB tuple for background color for text.
         background_key_color:
-            List of RGB tuples for key background color (one value per state).
+            List of RGB tuples for key background color (one tuple per state).
         background_input_color:
             RGB tuple for background color of the text input.
         background_special_key_color:
-            RGB tuple for special key background color.
+            List of RGB tuples for special key background color (one tuple per
+            state).
         """
         self.font = None
         self.font_input = None
@@ -190,7 +191,8 @@ class VKeyboardRenderer(object):
         if not self.font_input:  # Initialize font if not done
             self.font_input = fit_font(self.font_name, surface.get_height())
         surface.fill(self.background_input_color)
-        surface.blit(self.font_input.render(text, 1, self.text_color[0]), (0, 0))
+        surface.blit(self.font_input.render(text, 1,
+                                            self.text_color[0]), (0, 0))
 
     def draw_key(self, surface, key):
         """Default drawing method for key.

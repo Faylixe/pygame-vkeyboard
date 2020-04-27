@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf8
 
-""" Simple keyboard usage using custom numeric layout. """
+"""Simple keyboard usage using custom numeric layout."""
 
 # pylint: disable=import-error
 import pygame
