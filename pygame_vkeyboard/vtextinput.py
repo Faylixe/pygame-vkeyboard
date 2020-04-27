@@ -270,10 +270,24 @@ class VTextInput(object):
     def enable(self):
         """Set this text input as active."""
         self.state = 1
+        self.cursor.visible = 1
+        self.background.visible = 1
+        self.sprites.get_sprites_from_layer(1)[0].visible = 1
+
+    def is_enabled(self):
+        """Return True if this keyboard is active."""
+        return self.state == 1
 
     def disable(self):
         """Set this text input as non active."""
         self.state = 0
+        self.cursor.visible = 0
+        self.background.visible = 0
+        self.sprites.get_sprites_from_layer(1)[0].visible = 0
+
+    def get_rect(self):
+        """Return text input rect."""
+        return self.background.rect
 
     def draw(self, surface, force):
         """Draw the text input box.
@@ -285,14 +299,17 @@ class VTextInput(object):
         force:
             Force the drawing of the entire surface (time consuming).
         """
-        if self.state > 0:
-            if not self.eraser:
-                self.eraser = surface.copy()
-                self.sprites.clear(surface, self.eraser)
-            if force:
-                self.sprites.repaint_rect(self.background.rect)
-            return self.sprites.draw(surface)
-        return []
+        # Setup the surface used to hide/clear the text input
+        if surface and (not self.eraser or self.eraser != surface):
+            self.eraser = surface
+            self.sprites.clear(surface, self.eraser.copy())
+            self.sprites.set_clip(pygame.Rect(self.position[0], 0,
+                                              self.size[0],
+                                              self.position[1] + self.size[1]))
+
+        if force:
+            self.sprites.repaint_rect(self.background.rect)
+        return self.sprites.draw(surface)
 
     def update(self, events):
         """Pygame events processing callback method.
