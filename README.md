@@ -41,7 +41,7 @@ keyboard = VKeyboard(surface, consumer, layout)
 keyboard.enable()
 ```
 
-## Event managment
+## Event management
 
 A ``VKeyboard`` object handles the following pygame event :
 
@@ -132,6 +132,25 @@ You can also create your own renderer. Just override ``VKeyboardRenderer``class 
 - **draw_back_key(surface, key)**: Draws back key.
 - **draw_uppercase_key(surface, key)**: Draw uppercase switch key.
 - **draw_special_char_key(surface, key)**: Draw special character switch key.
+
+
+## Getting/Setting data
+
+Several information can be retrieved from the keyboard.
+
+```python
+keyboard = VKeyboard(...)
+
+keyboard.get_rect() # Get a pygame.Rect object in which the keyboard is included.
+
+keyboard.get_text() # Get the current text.
+
+keyboard.set_text("Hello world!") # Set the current text.
+
+keyboard.is_enabled() # Return True if the keyboard is enabled (thus displayed at screen).
+
+keyboard.disable() # Disable and hide the keyboard (keyboard.draw() has no more effect).
+```
 
 ## Run examples
 

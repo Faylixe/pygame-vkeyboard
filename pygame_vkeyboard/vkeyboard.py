@@ -433,6 +433,7 @@ class VKeyboard(object):
         synchronize_layouts(self.surface.get_size(), self.original_layout,
                             self.special_char_layout)
 
+        self.eraser = None
         self.background = VBackground(
             self.surface.get_rect().size,
             self.renderer)
@@ -440,13 +441,14 @@ class VKeyboard(object):
         self.original_layout.sprites.add(self.background, layer=0)
         self.special_char_layout.sprites.add(self.background, layer=0)
 
+        self.show_text_input = show_text_input
         self.input = VTextInput((
             self.original_layout.position[0],
             self.original_layout.position[1] - self.original_layout.key_size),
             (self.original_layout.size[0], self.original_layout.key_size),
             renderer=self.renderer)
 
-        if show_text_input:
+        if self.show_text_input:
             self.input.enable()
 
     def set_layout(self, layout):
@@ -462,13 +464,43 @@ class VKeyboard(object):
         self.layout = layout
         self.layout.show()
 
+    def set_text(self, text):
+        """Set the current text in the internal buffer.
+
+        Parameters
+        ----------
+        text:
+            Text to be set.
+        """
+        self.input.set_text(text)
+
+    def get_text(self):
+        """Return the current text of the internal buffer."""
+        return self.input.text
+
     def enable(self):
-        """Sets this keyboard as active. """
+        """Set this keyboard as active."""
         self.state = 1
+        self.layout.show()
+        if self.show_text_input:
+            self.input.enable()
+
+    def is_enabled(self):
+        """Return True if this keyboard is active."""
+        return self.state == 1
 
     def disable(self):
-        """Sets this keyboard as non active. """
+        """Set this keyboard as non active."""
         self.state = 0
+        self.layout.hide()
+        self.input.disable()
+
+    def get_rect(self):
+        """Return keyboard rect."""
+        rect = self.background.rect
+        if self.show_text_input:
+            rect = rect.union(self.input.get_rect())
+        return rect
 
     def draw(self, surface=None, force=False):
         """Draw the virtual keyboard.
@@ -489,12 +521,18 @@ class VKeyboard(object):
         rects:
             List of updated area.
         """
-        rects = []
-        if self.state > 0:
-            rects += self.layout.sprites.draw(surface or self.surface)
-            rects += self.input.draw(surface or self.surface, force)
-            if force:
-                self.layout.sprites.repaint_rect(self.background.rect)
+        # Setup the surface used to hide/clear the keyboard
+        if surface and (not self.eraser or self.eraser != surface):
+            self.eraser = surface
+            self.original_layout.sprites.clear(surface, self.eraser.copy())
+            self.original_layout.sprites.set_clip(self.background.rect)
+            self.special_char_layout.sprites.clear(surface, self.eraser.copy())
+            self.special_char_layout.sprites.set_clip(self.background.rect)
+
+        rects = self.layout.sprites.draw(surface or self.surface)
+        rects += self.input.draw(surface or self.surface, force)
+        if force:
+            self.layout.sprites.repaint_rect(self.background.rect)
         return rects
 
     def update(self, events):
