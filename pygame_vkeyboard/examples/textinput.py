@@ -32,6 +32,7 @@ def main(test=False):
     keyboard = vkboard.VKeyboard(screen,
                                  on_key_event,
                                  layout,
+                                 renderer=vkboard.VKeyboardRenderer.DARK,
                                  show_text=True)
 
     clock = pygame.time.Clock()

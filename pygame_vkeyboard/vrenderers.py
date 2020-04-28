@@ -42,6 +42,55 @@ def fit_font(font_name, max_height):
     return font
 
 
+def draw_rect(surface, rect, color, radius=0.1):
+    """Draw a rounded rectangle.
+
+    Parameters
+    ----------
+    surface:
+        Surface to draw on.
+    rect:
+        Rectangle to draw, position and dimensions.
+    color:
+        RGBA tuple color to draw with, the alpha value is optional.
+    radius:
+        Used for drawing rectangle with rounded corners. The supported range is
+        [0, 1] with 0 representing a rectangle without rounded corners.
+    """
+    rect = pygame.Rect(rect)
+    if len(color) == 4:
+        alpha = color[-1]
+        color = color[:3] + (0,)
+    else:
+        alpha = 255
+        color = color + (0,)
+
+    pos = rect.topleft
+    rect.topleft = 0, 0
+    rectangle = pygame.Surface(rect.size, pygame.SRCALPHA)
+
+    circle = pygame.Surface([min(rect.size) * 3] * 2, pygame.SRCALPHA)
+    pygame.draw.ellipse(circle, (0, 0, 0), circle.get_rect(), 0)
+    circle = pygame.transform.smoothscale(circle,
+                                          [int(min(rect.size) * radius)] * 2)
+
+    radius = rectangle.blit(circle, (0, 0))
+    radius.bottomright = rect.bottomright
+    rectangle.blit(circle, radius)
+    radius.topright = rect.topright
+    rectangle.blit(circle, radius)
+    radius.bottomleft = rect.bottomleft
+    rectangle.blit(circle, radius)
+
+    rectangle.fill((0, 0, 0), rect.inflate(-radius.w, 0))
+    rectangle.fill((0, 0, 0), rect.inflate(0, -radius.h))
+
+    rectangle.fill(color, special_flags=pygame.BLEND_RGBA_MAX)
+    rectangle.fill((255, 255, 255, alpha), special_flags=pygame.BLEND_RGBA_MIN)
+
+    return surface.blit(rectangle, pos)
+
+
 class VKeyboardRenderer(object):
     """
     A VKeyboardRenderer is in charge of keyboard rendering.
@@ -63,8 +112,12 @@ class VKeyboardRenderer(object):
                  background_color,
                  background_key_color,
                  background_input_color,
+                 text_special_key_color=None,
                  background_special_key_color=None):
         """VKeyboardStyle default constructor.
+
+        Some parameters take a list of color tuples, one per state.
+        The states are: (released, pressed, activated)
 
         Parameters
         ----------
@@ -80,6 +133,8 @@ class VKeyboardRenderer(object):
             List of RGB tuples for key background color (one tuple per state).
         background_input_color:
             RGB tuple for background color of the text input.
+        text_special_key_color:
+            List of RGB tuples for special key text color (one tuple per state).
         background_special_key_color:
             List of RGB tuples for special key background color (one tuple per
             state).
@@ -94,6 +149,8 @@ class VKeyboardRenderer(object):
         self.background_color = background_color
         self.background_key_color = background_key_color
         self.background_input_color = background_input_color
+
+        self.text_special_key_color = text_special_key_color
         self.background_special_key_color = background_special_key_color
 
     def get_text_width(self, text):
@@ -232,7 +289,7 @@ class VKeyboardRenderer(object):
         Parameters
         ----------
         surface:
-            Surface background should be drawn in.
+            Surface key background should be drawn in.
         key:
             Target key to be drawn.
         special:
@@ -244,12 +301,18 @@ class VKeyboardRenderer(object):
             self.font = fit_font(self.font_name, key.rect.height)
             self.font_height = key.rect.height
 
-        background_color = self.background_key_color
+        background_color = self.background_key_color[key.state]
         if special and self.background_special_key_color is not None:
-            background_color = self.background_special_key_color
+            background_color = self.background_special_key_color[key.state]
 
-        surface.fill(background_color[key.state])
-        text = self.font.render(str(key), 1, self.text_color[key.state])
+        text_color = self.text_color[key.state]
+        if special and self.text_special_key_color is not None:
+            state = getattr(key, 'activated', key.state)
+            text_color = self.text_special_key_color[state]
+
+        surface.fill(self.background_color)
+        draw_rect(surface, surface.get_rect(), background_color, 0.3)
+        text = self.font.render(str(key), 1, text_color)
         x = (key.rect.width - text.get_width()) // 2
         y = (key.rect.height - text.get_height()) // 2
         surface.blit(text, (x, y))
@@ -316,15 +379,17 @@ VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     background_color=(255, 255, 255),
     background_key_color=((255, 255, 255), (0, 0, 0)),
     background_input_color=(220, 220, 220),
+    text_special_key_color=((0, 0, 0), (124, 183, 62)),
     background_special_key_color=((180, 180, 180), (0, 0, 0))
 )
 
 VKeyboardRenderer.DARK = VKeyboardRenderer(
     osp.join(osp.dirname(__file__), 'DejaVuSans.ttf'),
-    text_color=((200, 200, 200), (255, 255, 255)),
+    text_color=((182, 183, 184), (255, 255, 255)),
     cursor_color=(255, 255, 255),
-    background_color=(40, 41, 35),
-    background_key_color=((65, 66, 67), (47, 48, 51)),
+    background_color=(0, 0, 0),
+    background_key_color=((59, 56, 54), (47, 48, 51)),
     background_input_color=(80, 80, 80),
-    background_special_key_color=((120, 120, 120), (0, 0, 0))
+    text_special_key_color=((182, 183, 184), (124, 183, 62)),
+    background_special_key_color=((35, 33, 30), (47, 48, 51))
 )

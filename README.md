@@ -116,9 +116,9 @@ A custom ``VKeyboardRenderer`` can be built using following constructor :
 renderer = VKeyboardRenderer(
     # Key font name/path.
     'arial',
-    # Text color for key (one per state, 0 for released, 1 for pressed).
+    # Text color for key and text box (one per state: released, pressed).
     ((0, 0, 0), (255, 255, 255)),
-    # Text input cursor color.
+    # Text box cursor color.
     (0, 0, 0),
     # Keyboard background color.
     (50, 50, 50),
@@ -126,6 +126,8 @@ renderer = VKeyboardRenderer(
     ((255, 255, 255), (0, 0, 0)),
     # Text input background color.
     (220, 220, 220),
+    # Optional special key text color (one per state, as for the text color).
+    ((0, 250, 0), (255, 255, 255)),
     # Optional special key background color (one per state, as for the text color).
     ((255, 255, 255), (0, 0, 0)),
 )
@@ -164,7 +166,7 @@ keyboard.set_text("Hello world!")
 # Return True if the keyboard is enabled (thus displayed at screen).
 keyboard.is_enabled()
 
-# Disable and hide the keyboard (keyboard.update() and keyboard.draw() have no more effect).
+# Disable and hide the keyboard (keyboard.update() and keyboard.draw() have no effect).
 keyboard.disable()
 ```
 
