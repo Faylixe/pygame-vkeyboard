@@ -33,9 +33,6 @@ setup(
         'Topic :: Software Development :: Libraries :: pygame'
     ],
     packages=find_packages(),
-    package_data={
-        'pygame_vkeyboard': ['*.ttf'],
-    },
     include_package_data=True,
     python_requires='>=2.7',
     install_requires=[
