@@ -27,7 +27,7 @@ def fit_font(font_name, max_height):
     # Ensure a large panel of characters heights
     text = "?/|!()§&@0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN"  # noqa
 
-    start = max_height // 2
+    start = 0
     end = max_height * 2
 
     while start < end:
@@ -85,7 +85,9 @@ class VKeyboardRenderer(object):
             state).
         """
         self.font = None
+        self.font_height = None
         self.font_input = None
+        self.font_input_height = None
         self.font_name = font_name
         self.text_color = text_color
         self.cursor_color = cursor_color
@@ -188,8 +190,11 @@ class VKeyboardRenderer(object):
         text:
             Target text to be drawn.
         """
-        if not self.font_input:  # Initialize font if not done
+        if self.font_input_height != surface.get_height():
+            # Resize font to fit the surface
             self.font_input = fit_font(self.font_name, surface.get_height())
+            self.font_input_height = surface.get_height()
+
         surface.fill(self.background_input_color)
         surface.blit(self.font_input.render(text, 1,
                                             self.text_color[0]), (0, 0))
@@ -234,8 +239,10 @@ class VKeyboardRenderer(object):
             Boolean flag that indicates if the drawn key should use
             special background color if available.
         """
-        if not self.font:  # Initialize font if not done
+        if self.font_height != key.rect.height:
+            # Resize font to fit the surface
             self.font = fit_font(self.font_name, key.rect.height)
+            self.font_height = key.rect.height
 
         background_color = self.background_key_color
         if special and self.background_special_key_color is not None:
