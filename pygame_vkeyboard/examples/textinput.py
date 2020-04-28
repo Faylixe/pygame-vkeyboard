@@ -29,12 +29,10 @@ def main(test=False):
 
     # Create keyboard
     layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.QWERTY)
-    keyboard = vkboard.VKeyboard(
-        screen,
-        on_key_event,
-        layout,
-        show_text_input=True)
-    keyboard.enable()
+    keyboard = vkboard.VKeyboard(screen,
+                                 on_key_event,
+                                 layout,
+                                 show_text=True)
 
     clock = pygame.time.Clock()
 

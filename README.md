@@ -41,6 +41,12 @@ keyboard = VKeyboard(surface, consumer, layout)
 keyboard.enable()
 ```
 
+The keyboard has the following optional parameters:
+
+- **show_text**: display a text bar with the current text
+- **renderer** : define a custom renderer (see chapter below)
+- **special_char_layout**: define a custom layout for special characters
+
 ## Event management
 
 A ``VKeyboard`` object handles the following pygame event :
@@ -57,7 +63,10 @@ while True:
 
     events = pygame.event.get()
 
+    # Update internal variables
     keyboard.update(events)
+
+    # Draw the keyboard
     keyboard.draw(surface)
 
     # Perform other tasks here
@@ -65,6 +74,8 @@ while True:
 
 It will update key state accordingly as the keyboard buffer as well. Buffer modification will be notified
 through the keyboard text consumer function.
+
+**Note:** the ``surface`` parameter of the ``draw()`` method is optional, it is used to clear/hide the keyboard when it is necessary and may be mandatory if the surface has changed.
 
 ## Customize layout
 
@@ -96,8 +107,8 @@ keyboard = VKeyboard(surface, consumer, layout, renderer=VKeyboardRenderer.DARK)
 
 Here is the list of default renderers provided with ``pygame-vkeyboard``:
 
-    - VKeyboardRenderer.DEFAULT
-    - VKeyboardRenderer.DARK
+- VKeyboardRenderer.DEFAULT
+- VKeyboardRenderer.DARK
 
 A custom ``VKeyboardRenderer`` can be built using following constructor :
 
@@ -136,20 +147,25 @@ You can also create your own renderer. Just override ``VKeyboardRenderer``class 
 
 ## Getting/Setting data
 
-Several information can be retrieved from the keyboard.
+Several information can be retrieved from the keyboard:
 
 ```python
 keyboard = VKeyboard(...)
 
-keyboard.get_rect() # Get a pygame.Rect object in which the keyboard is included.
+# Get a pygame.Rect object in which the keyboard is included.
+keyboard.get_rect()
 
-keyboard.get_text() # Get the current text.
+# Get the current text.
+keyboard.get_text()
 
-keyboard.set_text("Hello world!") # Set the current text.
+# Set the current text (clear the existing one).
+keyboard.set_text("Hello world!")
 
-keyboard.is_enabled() # Return True if the keyboard is enabled (thus displayed at screen).
+# Return True if the keyboard is enabled (thus displayed at screen).
+keyboard.is_enabled()
 
-keyboard.disable() # Disable and hide the keyboard (keyboard.draw() has no more effect).
+# Disable and hide the keyboard (keyboard.update() and keyboard.draw() have no more effect).
+keyboard.disable()
 ```
 
 ## Run examples

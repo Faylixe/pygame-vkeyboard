@@ -267,6 +267,8 @@ class VTextInput(object):
             self.position[1]))
         self.sprites.add(self.cursor, layer=2)
 
+        self.disable()
+
     def enable(self):
         """Set this text input as active."""
         self.state = 1
@@ -300,7 +302,7 @@ class VTextInput(object):
             Force the drawing of the entire surface (time consuming).
         """
         # Setup the surface used to hide/clear the text input
-        if surface and (not self.eraser or self.eraser != surface):
+        if surface and surface != self.eraser:
             self.eraser = surface
             self.sprites.clear(surface, self.eraser.copy())
             self.sprites.set_clip(pygame.Rect(self.position[0], 0,
@@ -338,32 +340,33 @@ class VTextInput(object):
 
     def update_lines(self):
         """Update lines content with the current text."""
-        remain = self.text
+        if self.state > 0:
+            remain = self.text
 
-        # Update existing line with text
-        for line in self.sprites.get_sprites_from_layer(1):
-            remain = line.feed(remain)
+            # Update existing line with text
+            for line in self.sprites.get_sprites_from_layer(1):
+                remain = line.feed(remain)
 
-        # Create new lines if necessary
-        while remain:
-            line = VLine((self.size[0] - 2 * self.text_margin,
-                          self.size[1]), self.renderer)
-            self.sprites.add(line, layer=1)
-            remain = line.feed(remain)
+            # Create new lines if necessary
+            while remain:
+                line = VLine((self.size[0] - 2 * self.text_margin,
+                              self.size[1]), self.renderer)
+                self.sprites.add(line, layer=1)
+                remain = line.feed(remain)
 
-        # Update lines positions
-        i = 0
-        for line in reversed(self.sprites.get_sprites_from_layer(1)):
-            if line.visible:
-                x = self.position[0] + self.text_margin
-                y = self.position[1] - i * self.size[1] - self.text_margin
-                line.set_position((x, y))
-                i += 1
+            # Update lines positions
+            i = 0
+            for line in reversed(self.sprites.get_sprites_from_layer(1)):
+                if line.visible:
+                    x = self.position[0] + self.text_margin
+                    y = self.position[1] - i * self.size[1] - self.text_margin
+                    line.set_position((x, y))
+                    i += 1
 
-        self.background.set_rect(self.position[0],
-                                 line.rect.y - self.text_margin,
-                                 self.size[0],
-                                 i * self.size[1] + 2 * self.text_margin)
+            self.background.set_rect(self.position[0],
+                                     line.rect.y - self.text_margin,
+                                     self.size[0],
+                                     i * self.size[1] + 2 * self.text_margin)
 
     def set_text(self, text):
         """Overwrite the current text with the given one. The cursor is

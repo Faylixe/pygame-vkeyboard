@@ -161,13 +161,13 @@ class VKeyboardLayout(object):
     AZERTY = ['1234567890', 'azertyuiop', 'qsdfghjklm', 'wxcvbn']
 
     # QWERTY Layout.
-    QWERTY = ['1234567890', 'qwertyuiop', 'asdfghjkl', 'wzxcvbnm']
+    QWERTY = ['1234567890', 'qwertyuiop', 'asdfghjkl', 'zxcvbnm']
 
     # Number only layout.
     NUMBER = ['123', '456', '789', '0']
 
     # TODO : Insert special characters layout which include number.
-    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?.@+<>#', u'[]{}/\\|']
+    SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?.@+<>#', u'€[]{}/\\|']
     """Special characters layout. """
 
     def __init__(self,
@@ -393,9 +393,9 @@ class VKeyboard(object):
                  surface,
                  text_consumer,
                  layout,
-                 special_char_layout=VKeyboardLayout(VKeyboardLayout.SPECIAL),
+                 show_text=False,
                  renderer=VKeyboardRenderer.DEFAULT,
-                 show_text_input=False):
+                 special_char_layout=VKeyboardLayout(VKeyboardLayout.SPECIAL),):
         """ Default constructor.
 
         Parameters
@@ -406,17 +406,19 @@ class VKeyboard(object):
             Consumer that process text for each update.
         layout:
             Layout this keyboard will use.
-        special_char_layout:
-            Alternative layout to use, using VKeyboardLayout.SPECIAL
-            if not specified.
+        show_text:
+            Display the current text in a text box.
         renderer:
             Keyboard renderer instance, using VKeyboardRenderer.DEFAULT
+            if not specified.
+        special_char_layout:
+            Alternative layout to use, using VKeyboardLayout.SPECIAL
             if not specified.
         """
         self.surface = surface
         self.text_consumer = text_consumer
         self.renderer = renderer
-        self.state = 0
+        self.state = 1  # Enabled by default
         self.last_pressed = None
         self.uppercase = False
         self.special_char = False
@@ -441,14 +443,14 @@ class VKeyboard(object):
         self.original_layout.sprites.add(self.background, layer=0)
         self.special_char_layout.sprites.add(self.background, layer=0)
 
-        self.show_text_input = show_text_input
+        self.show_text = show_text
         self.input = VTextInput((
             self.original_layout.position[0],
             self.original_layout.position[1] - self.original_layout.key_size),
             (self.original_layout.size[0], self.original_layout.key_size),
             renderer=self.renderer)
 
-        if self.show_text_input:
+        if self.show_text:
             self.input.enable()
 
     def set_layout(self, layout):
@@ -482,7 +484,7 @@ class VKeyboard(object):
         """Set this keyboard as active."""
         self.state = 1
         self.layout.show()
-        if self.show_text_input:
+        if self.show_text:
             self.input.enable()
 
     def is_enabled(self):
@@ -498,7 +500,7 @@ class VKeyboard(object):
     def get_rect(self):
         """Return keyboard rect."""
         rect = self.background.rect
-        if self.show_text_input:
+        if self.show_text:
             rect = rect.union(self.input.get_rect())
         return rect
 
@@ -522,7 +524,7 @@ class VKeyboard(object):
             List of updated area.
         """
         # Setup the surface used to hide/clear the keyboard
-        if surface and (not self.eraser or self.eraser != surface):
+        if surface and surface != self.eraser:
             self.eraser = surface
             self.original_layout.sprites.clear(surface, self.eraser.copy())
             self.original_layout.sprites.set_clip(self.background.rect)
