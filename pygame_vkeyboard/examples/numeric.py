@@ -33,7 +33,8 @@ def main(test=False):
                                      allow_uppercase=False,
                                      allow_special_chars=False,
                                      allow_space=False)
-    keyboard = vkboard.VKeyboard(screen, on_key_event, layout)
+    keyboard = vkboard.VKeyboard(screen, on_key_event, layout,
+                                 joystick_navigation=True)
 
     # Main loop
     while True:

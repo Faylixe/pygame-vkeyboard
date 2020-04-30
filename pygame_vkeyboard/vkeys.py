@@ -20,8 +20,16 @@ class VKey(pygame.sprite.DirtySprite):
     """
     Simple key holder class.
 
-    Holds key information (its value), as it's state, 1 for pressed,
-    0 for released. Also contains it size / position properties.
+    Holds key information (its value), as its state, size / position.
+    State attributes with their default values:
+
+    pressed = 0
+        If set to 0, the key is released.
+        If set to 1, the key is pressed.
+
+    selected = 0
+        If set to 0, the key is selectable but not selected.
+        If set to 1, the key is selected.
     """
 
     def __init__(self, value, symbol=None):
@@ -36,7 +44,8 @@ class VKey(pygame.sprite.DirtySprite):
             (equal to the value if not given).
         """
         super(VKey, self).__init__()
-        self.state = 0
+        self.pressed = 0
+        self.selected = 0
         self.value = value
         self.symbol = symbol
         self.rect = pygame.Rect((0, 0), (10, 10))
@@ -98,7 +107,7 @@ class VKey(pygame.sprite.DirtySprite):
             self.dirty = 1
 
     def set_pressed(self, state):
-        """Set the key state (1 for pressed 0 for released)
+        """Set the key pressed state (1 for pressed 0 for released)
         and redraws it.
 
         Parameters
@@ -106,8 +115,22 @@ class VKey(pygame.sprite.DirtySprite):
         state:
             New key state.
         """
-        if self.state != int(state):
-            self.state = int(state)
+        if self.pressed != int(state):
+            self.pressed = int(state)
+            self.renderer.draw_key(self.image, self)
+            self.dirty = 1
+
+    def set_selected(self, state):
+        """Set the key selection state (1 for selected else 0)
+        and redraws it.
+
+        Parameters
+        ----------
+        state:
+            New key state.
+        """
+        if self.selected != int(state):
+            self.selected = int(state)
             self.renderer.draw_key(self.image, self)
             self.dirty = 1
 
@@ -120,10 +143,14 @@ class VKey(pygame.sprite.DirtySprite):
             List of events to process.
         """
         for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN\
+                    and event.button in (1, 2, 3):
+                # Don't consider the mouse wheel (button 4 & 5):
                 if self.rect.collidepoint(event.pos):
                     self.set_pressed(1)
-            elif event.type == pygame.MOUSEBUTTONUP:
+            elif event.type == pygame.MOUSEBUTTONUP\
+                    and event.button in (1, 2, 3):
+                # Don't consider the mouse wheel (button 4 & 5):
                 self.set_pressed(0)
             if event.type == pygame.KEYDOWN:
                 if event.unicode and event.unicode == self.value:
@@ -173,7 +200,7 @@ class VSpaceKey(VKey):
         """Nothing to do on upper case action."""
         pass
 
-    def set_size(self,  width, height):
+    def set_size(self, width, height):
         """Sets the size of this key.
 
         Parameters
@@ -256,9 +283,9 @@ class VActionKey(VKey):
 
     def set_pressed(self, state):
         """Nothing to do on upper case action."""
-        prev_state = self.state
+        prev_state = self.pressed
         super(VActionKey, self).set_pressed(state)
-        if prev_state != self.state and self.state == 0:
+        if prev_state != self.pressed and self.pressed == 0:
             # The key is getting unpressed
             self.action()
 

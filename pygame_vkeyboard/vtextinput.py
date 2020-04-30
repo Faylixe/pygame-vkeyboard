@@ -30,8 +30,9 @@ class VBackground(pygame.sprite.DirtySprite):
         super(VBackground, self).__init__()
         self.renderer = renderer
         self.image = pygame.Surface(size, pygame.SRCALPHA, 32)
-        self.renderer.draw_background(self.image)
         self.rect = pygame.Rect((0, 0), size)
+
+        self.renderer.draw_background(self.image)
 
     def set_rect(self, x, y, width, height):
         """Set the background absolute position and size.
@@ -77,14 +78,16 @@ class VCursor(pygame.sprite.DirtySprite):
         super(VCursor, self).__init__()
         self.renderer = renderer
         self.image = pygame.Surface(size, pygame.SRCALPHA, 32)
-        self.renderer.draw_cursor(self.image)
         self.rect = self.image.get_rect()
         self.index = 0
+        self.selected = 0
 
         # Blink management
         self.clock = pygame.time.Clock()
         self.switch_ms = 400
         self.switch_counter = 0
+
+        self.renderer.draw_cursor(self.image, self)
 
     def set_position(self, position):
         """Set the cursor absolute position.
@@ -143,11 +146,12 @@ class VLine(pygame.sprite.DirtySprite):
         super(VLine, self).__init__()
         self.renderer = renderer
         self.image = pygame.Surface(size, pygame.SRCALPHA, 32)
-        self.renderer.draw_text(self.image, '')
         self.rect = pygame.Rect((0, 0), size)
         self.text = ''
         self.full = False
         self.always_visible = always_visible
+
+        self.renderer.draw_text(self.image, '')
 
     def __len__(self):
         """Return the number of characters in the line."""
@@ -324,18 +328,20 @@ class VTextInput(object):
         if self.state > 0:
             self.sprites.update(events)
             for event in events:
-                if event.type == pygame.KEYUP:
+                if event.type == pygame.KEYUP and self.cursor.selected:
                     if event.key == pygame.K_LEFT:
                         self.increment_cursor(-1)
-                    if event.key == pygame.K_RIGHT:
+                    elif event.key == pygame.K_RIGHT:
                         self.increment_cursor(1)
-                    if event.key == pygame.K_HOME:
+                    elif event.key == pygame.K_HOME:
                         self.cursor.index = 0
                         self.increment_cursor(0)
-                    if event.key == pygame.K_END:
+                    elif event.key == pygame.K_END:
                         self.cursor.index = 0
                         self.increment_cursor(len(self.text))
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN\
+                        and event.button in (1, 2, 3):
+                    # Don't consider the mouse wheel (button 4 & 5):
                     self.set_cursor(event.pos)
 
     def update_lines(self):

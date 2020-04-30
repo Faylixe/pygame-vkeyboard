@@ -46,6 +46,7 @@ The keyboard has the following optional parameters:
 - **show_text**: display a text bar with the current text
 - **renderer** : define a custom renderer (see chapter below)
 - **special_char_layout**: define a custom layout for special characters
+- **joystick_navigation**: enable navigation using a joystick
 
 ## Event management
 
@@ -120,6 +121,8 @@ renderer = VKeyboardRenderer(
     ((0, 0, 0), (255, 255, 255)),
     # Text box cursor color.
     (0, 0, 0),
+    # Selected key color.
+    (20, 200, 98),
     # Keyboard background color.
     (50, 50, 50),
     # Key background color (one per state, as for the text color).
@@ -139,7 +142,7 @@ You can also create your own renderer. Just override ``VKeyboardRenderer``class 
 
 - **draw_background(surface)**: Draws the background of the keyboard.
 - **draw_text(surface, text)**: Draws the text of the text input box.
-- **draw_cursor(surface)**: Draws the cursor of the text input box.
+- **draw_cursor(surface, cursor)**: Draws the cursor of the text input box.
 - **draw_character_key(surface, key, special=False)**: Draws a key based on character value.
 - **draw_space_key(surface, key)**: Draws space bar.
 - **draw_back_key(surface, key)**: Draws back key.

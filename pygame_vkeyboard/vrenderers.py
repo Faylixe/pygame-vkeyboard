@@ -42,17 +42,17 @@ def fit_font(font_name, max_height):
     return font
 
 
-def draw_rect(surface, rect, color, radius=0.1):
+def draw_round_rect(surface, color, rect, radius=0.1):
     """Draw a rounded rectangle.
 
     Parameters
     ----------
     surface:
         Surface to draw on.
-    rect:
-        Rectangle to draw, position and dimensions.
     color:
         RGBA tuple color to draw with, the alpha value is optional.
+    rect:
+        Rectangle to draw, position and dimensions.
     radius:
         Used for drawing rectangle with rounded corners. The supported range is
         [0, 1] with 0 representing a rectangle without rounded corners.
@@ -63,7 +63,7 @@ def draw_rect(surface, rect, color, radius=0.1):
         color = color[:3] + (0,)
     else:
         alpha = 255
-        color = color + (0,)
+        color += (0,)
 
     pos = rect.topleft
     rect.topleft = 0, 0
@@ -109,6 +109,7 @@ class VKeyboardRenderer(object):
                  font_name,
                  text_color,
                  cursor_color,
+                 selection_color,
                  background_color,
                  background_key_color,
                  background_input_color,
@@ -117,7 +118,7 @@ class VKeyboardRenderer(object):
         """VKeyboardStyle default constructor.
 
         Some parameters take a list of color tuples, one per state.
-        The states are: (released, pressed, activated)
+        The states are: (released, pressed)
 
         Parameters
         ----------
@@ -127,8 +128,10 @@ class VKeyboardRenderer(object):
             List of RGB tuples for text color (one tuple per state).
         cursor_color:
             RGB tuple for cursor color of text input.
+        selection_color:
+            RGB tuple for selected key color.
         background_color:
-            RGB tuple for background color for text.
+            RGB tuple for background colo   r for text.
         background_key_color:
             List of RGB tuples for key background color (one tuple per state).
         background_input_color:
@@ -146,6 +149,7 @@ class VKeyboardRenderer(object):
         self.font_name = font_name
         self.text_color = text_color
         self.cursor_color = cursor_color
+        self.selection_color = selection_color
         self.background_color = background_color
         self.background_key_color = background_key_color
         self.background_input_color = background_input_color
@@ -222,7 +226,7 @@ class VKeyboardRenderer(object):
         """
         surface.fill(self.background_color)
 
-    def draw_cursor(self, surface):
+    def draw_cursor(self, surface, cursor):
         """Default drawing method for cursor of the text input box.
 
         Cursor is drawn as a simple rectangle filled using the
@@ -232,8 +236,13 @@ class VKeyboardRenderer(object):
         ----------
         surface:
             Surface representing the cursor.
+        cursor:
+            Cursor object.
         """
-        surface.fill(self.cursor_color)
+        if cursor.selected:
+            surface.fill(self.selection_color)
+        else:
+            surface.fill(self.cursor_color)
 
     def draw_text(self, surface, text):
         """Default drawing method for text input box.
@@ -296,22 +305,28 @@ class VKeyboardRenderer(object):
             Boolean flag that indicates if the drawn key should use
             special background color if available.
         """
-        if self.font_height != key.rect.height:
+        rect = surface.get_rect().inflate(-2, -2)
+        if self.font_height != rect.height:
             # Resize font to fit the surface
-            self.font = fit_font(self.font_name, key.rect.height)
-            self.font_height = key.rect.height
+            self.font = fit_font(self.font_name, rect.height)
+            self.font_height = rect.height
 
-        background_color = self.background_key_color[key.state]
-        if special and self.background_special_key_color is not None:
-            background_color = self.background_special_key_color[key.state]
+        background_color = self.background_key_color[key.pressed]
+        if special and self.background_special_key_color:
+            background_color = self.background_special_key_color[key.pressed]
 
-        text_color = self.text_color[key.state]
-        if special and self.text_special_key_color is not None:
-            state = getattr(key, 'activated', key.state)
+        text_color = self.text_color[key.pressed]
+        if special and self.text_special_key_color and not key.pressed:
+            # Key is not pressed, color according to activated state
+            state = getattr(key, 'activated', key.pressed)
             text_color = self.text_special_key_color[state]
 
-        surface.fill(self.background_color)
-        draw_rect(surface, surface.get_rect(), background_color, 0.3)
+        if key.selected:
+            surface.fill(self.selection_color)
+        else:
+            surface.fill(self.background_color)
+
+        draw_round_rect(surface, background_color, rect, 0.3)
         text = self.font.render(str(key), 1, text_color)
         x = (key.rect.width - text.get_width()) // 2
         y = (key.rect.height - text.get_height()) // 2
@@ -376,10 +391,10 @@ VKeyboardRenderer.DEFAULT = VKeyboardRenderer(
     osp.join(osp.dirname(__file__), 'DejaVuSans.ttf'),
     text_color=((0, 0, 0), (255, 255, 255)),
     cursor_color=(0, 0, 0),
+    selection_color=(0, 0, 200),
     background_color=(255, 255, 255),
     background_key_color=((255, 255, 255), (0, 0, 0)),
     background_input_color=(220, 220, 220),
-    text_special_key_color=((0, 0, 0), (124, 183, 62)),
     background_special_key_color=((180, 180, 180), (0, 0, 0))
 )
 
@@ -387,6 +402,7 @@ VKeyboardRenderer.DARK = VKeyboardRenderer(
     osp.join(osp.dirname(__file__), 'DejaVuSans.ttf'),
     text_color=((182, 183, 184), (255, 255, 255)),
     cursor_color=(255, 255, 255),
+    selection_color=(124, 183, 62),
     background_color=(0, 0, 0),
     background_key_color=((59, 56, 54), (47, 48, 51)),
     background_input_color=(80, 80, 80),

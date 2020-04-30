@@ -33,7 +33,8 @@ def main(test=False):
                                  on_key_event,
                                  layout,
                                  renderer=vkboard.VKeyboardRenderer.DARK,
-                                 show_text=True)
+                                 show_text=True,
+                                 joystick_navigation=True)
 
     clock = pygame.time.Clock()
 

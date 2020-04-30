@@ -33,9 +33,15 @@ from .vrenderers import VKeyboardRenderer
 from .vtextinput import VTextInput, VBackground
 
 
-# Configure logger.
+# Configure LOGGER.
 logging.basicConfig()
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
+
+# Joystick controls
+JOYHAT_UP = (0, 1)
+JOYHAT_LEFT = (-1, 0)
+JOYHAT_RIGHT = (1, 0)
+JOYHAT_DOWN = (0, -1)
 
 
 def synchronize_layouts(surface_size, *layouts):
@@ -205,6 +211,7 @@ class VKeyboardLayout(object):
         self.sprites = pygame.sprite.LayeredDirty()
         self.key_size = key_size
         self.padding = padding
+        self.selection = None
         self.allow_space = allow_space
         self.allow_uppercase = allow_uppercase
         self.allow_special_chars = allow_special_chars
@@ -264,7 +271,7 @@ class VKeyboardLayout(object):
         self.sprites.add(*special_keys, layer=1)
 
         # Dispatch special keys in the layout
-        while len(special_keys) > 0:
+        while special_keys:
             first = False
             while len(special_keys) > 0 and len(current_row) < max_length:
                 current_row.add_key(special_keys.pop(0), first=first)
@@ -281,10 +288,10 @@ class VKeyboardLayout(object):
         first = True
 
         # Adding left to the special bar.
-        while len(special_keys) > 0:
+        while special_keys:
             special_row.add_key(special_keys.pop(0), first=first)
             first = not first
-        if len(special_row) > 0:
+        if special_row:
             self.rows.append(special_row)
 
     def configure_bound(self, surface_size):
@@ -306,7 +313,7 @@ class VKeyboardLayout(object):
             self.key_size = int(((surface_size[1] / 2)
                                  - (self.padding * (r + 1))) / r)
             height = self.key_size * r + self.padding * (r + 1)
-            logger.warning('Computed layout height outbound target surface,'
+            LOGGER.warning('Computed layout height outbound target surface,'
                            ' reducing key_size to %spx', self.key_size)
         self.set_size((surface_size[0], int(height)), surface_size)
 
@@ -345,7 +352,7 @@ class VKeyboardLayout(object):
             key.set_uppercase(uppercase)
 
     def get_key(self, value):
-        """Retrieves if any key with the given value
+        """Retrieve if any key with the given value
 
         Parameters
         ----------
@@ -363,7 +370,7 @@ class VKeyboardLayout(object):
         return None
 
     def get_key_at(self, position):
-        """Retrieves if any key is located at the given position
+        """Retrieve if any key is located at the given position
 
         Parameters
         ----------
@@ -378,6 +385,43 @@ class VKeyboardLayout(object):
         for sprite in self.sprites.get_sprites_at(position):
             if isinstance(sprite, vkeys.VKey):
                 return sprite
+        return None
+
+    def get_key_closest(self, key):
+        """Retrieve the keys closest to the given one. It returns
+        a dictionary with closest keys and their position relative
+        to the given key (diff row, diff column).
+
+        Parameters
+        ----------
+        key:
+            The key to locate.
+
+        Returns
+        -------
+        keys_dict:
+            The located keys on the left, top, right, bottom.
+        """
+        center = (0, 0)
+        left = (0, -1)
+        top = (-1, 0)
+        right = (0, 1)
+        bottom = (1, 0)
+        keys_dict = {center: key}
+
+        for row_index, r in enumerate(self.rows):
+            for key_index, k in enumerate(r.keys):
+                if key == k:
+                    keys_dict[left] = r.keys[(key_index - 1) % len(r.keys)]
+                    keys_dict[right] = r.keys[(key_index + 1) % len(r.keys)]
+
+                    prev_row = self.rows[(row_index - 1) % len(self.rows)]
+                    keys_dict[top] = prev_row\
+                        .keys[min(key_index, len(prev_row) - 1)]
+                    next_row = self.rows[(row_index + 1) % len(self.rows)]
+                    keys_dict[bottom] = next_row\
+                        .keys[min(key_index, len(next_row) - 1)]
+        return keys_dict
 
 
 class VKeyboard(object):
@@ -394,6 +438,7 @@ class VKeyboard(object):
                  text_consumer,
                  layout,
                  show_text=False,
+                 joystick_navigation=False,
                  renderer=VKeyboardRenderer.DEFAULT,
                  special_char_layout=VKeyboardLayout(VKeyboardLayout.SPECIAL),):
         """ Default constructor.
@@ -408,6 +453,8 @@ class VKeyboard(object):
             Layout this keyboard will use.
         show_text:
             Display the current text in a text box.
+        joystick_navigation:
+            Handle joystick events and arrow keys.
         renderer:
             Keyboard renderer instance, using VKeyboardRenderer.DEFAULT
             if not specified.
@@ -422,6 +469,7 @@ class VKeyboard(object):
         self.last_pressed = None
         self.uppercase = False
         self.special_char = False
+        self.joystick_navigation = joystick_navigation
 
         self.layout = layout
         self.original_layout = layout
@@ -444,14 +492,21 @@ class VKeyboard(object):
         self.special_char_layout.sprites.add(self.background, layer=0)
 
         self.show_text = show_text
-        self.input = VTextInput((
-            self.original_layout.position[0],
-            self.original_layout.position[1] - self.original_layout.key_size),
-            (self.original_layout.size[0], self.original_layout.key_size),
-            renderer=self.renderer)
+        self.input = VTextInput((self.original_layout.position[0],
+                                 self.original_layout.position[1]
+                                 - self.original_layout.key_size),
+                                (self.original_layout.size[0],
+                                 self.original_layout.key_size),
+                                renderer=self.renderer)
 
         if self.show_text:
             self.input.enable()
+
+        if self.joystick_navigation:
+            if not pygame.joystick.get_init():
+                pygame.joystick.init()
+            for i in range(pygame.joystick.get_count()):
+                pygame.joystick.Joystick(i).init()
 
     def set_layout(self, layout):
         """Sets the layout this keyboard work with.
@@ -550,14 +605,65 @@ class VKeyboard(object):
             self.input.update(events)
 
             for event in events:
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN\
+                                and event.button in (1, 2, 3):
+                    # Don't consider the mouse wheel (button 4 & 5)
                     key = self.layout.get_key_at(event.pos)
                     if key:
                         self.on_key_down(key)
+                        self.on_select(0, 0, key)
                 elif event.type == pygame.KEYDOWN:
                     key = self.layout.get_key(event.unicode or event.key)
                     if key:
                         self.on_key_down(key)
+                    if event.key == pygame.K_LEFT:
+                        self.on_select(0, -1)
+                    elif event.key == pygame.K_UP:
+                        self.on_select(-1, 0)
+                    elif event.key == pygame.K_RIGHT:
+                        self.on_select(0, 1)
+                    elif event.key == pygame.K_DOWN:
+                        self.on_select(1, 0)
+                    elif event.key == pygame.K_RETURN\
+                            and self.layout.selection:
+                        self.on_key_down(self.layout.selection)
+                elif event.type == pygame.JOYHATMOTION:
+                    if event.value == JOYHAT_LEFT:
+                        self.on_select(0, -1)
+                    elif event.value == JOYHAT_UP:
+                        self.on_select(-1, 0)
+                    elif event.value == JOYHAT_RIGHT:
+                        self.on_select(0, 1)
+                    elif event.value == JOYHAT_DOWN:
+                        self.on_select(1, 0)
+                    elif event.type == pygame.JOYBUTTONDOWN\
+                            and event.button == 0 and self.layout.selection:
+                        # Select button pressed
+                        self.on_key_down(self.layout.selection)
+
+    def on_select(self, increment_row, increment_col, key=None):
+        """"Change the currently selected key.
+
+        Parameters
+        ----------
+        increment_row:
+            Of how many rows to move (-1 to go up, 1 to go down).
+        increment_col:
+            Of how many columns to move (-1 to go left, 1 to go right).
+        key:
+            The key to start from, by default the currently selected one.
+        """
+        if self.joystick_navigation:
+            if not self.layout.selection:
+                self.layout.selection = key or self.layout.rows[0].keys[0]
+                self.layout.selection.set_selected(True)
+                return
+
+            closest = self.layout.get_key_closest(key or self.layout.selection)
+            if closest[(increment_row, increment_col)]:
+                self.layout.selection.set_selected(False)
+                self.layout.selection = closest[(increment_row, increment_col)]
+                self.layout.selection.set_selected(True)
 
     def on_event(self, event):
         """Deprecated method, only for backward compatibility."""
