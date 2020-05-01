@@ -34,7 +34,6 @@ def main(test=False):
                                      allow_special_chars=False,
                                      allow_space=False)
     keyboard = vkboard.VKeyboard(screen, on_key_event, layout,
-                                 special_char_layout=None,
                                  joystick_navigation=True)
 
     # Main loop

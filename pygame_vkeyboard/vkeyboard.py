@@ -480,40 +480,37 @@ class VKeyboard(object):
         self.special_char = False
         self.joystick_navigation = joystick_navigation
 
-        self.layout = layout
-        self.original_layout = layout
-        self.original_layout.configure_special_keys(self)
-        self.original_layout.configure_renderer(self.renderer)
-
-        self.special_char_layout = special_char_layout
-        if self.special_char_layout:
-            self.special_char_layout.configure_special_keys(self)
-            self.special_char_layout.configure_renderer(self.renderer)
-            synchronize_layouts(self.surface.get_size(),
-                                self.original_layout,
-                                self.special_char_layout)
-        else:
-            synchronize_layouts(self.surface.get_size(), self.original_layout)
-
+        # Setup background as a DirtySprite
         self.eraser = None
         self.background = VBackground(self.surface.get_rect().size,
                                       self.renderer)
+
+        # Setup the layouts
+        self.layout = layout
+        self.layouts = [layout]
+        if special_char_layout and self.layout.allow_special_chars:
+            self.layouts.append(special_char_layout)
+
+        for layout in self.layouts:
+            layout.configure_special_keys(self)
+            layout.configure_renderer(self.renderer)
+            layout.sprites.add(self.background, layer=0)
+
+        synchronize_layouts(self.surface.get_size(), *self.layouts)
         self.background.set_rect(*self.layout.position + self.layout.size)
-        self.original_layout.sprites.add(self.background, layer=0)
-        if self.special_char_layout:
-            self.special_char_layout.sprites.add(self.background, layer=0)
 
+        # Setup the text input box
         self.show_text = show_text
-        self.input = VTextInput((self.original_layout.position[0],
-                                 self.original_layout.position[1]
-                                 - self.original_layout.key_size),
-                                (self.original_layout.size[0],
-                                 self.original_layout.key_size),
+        self.input = VTextInput((self.layout.position[0],
+                                 self.layout.position[1]
+                                 - self.layout.key_size),
+                                (self.layout.size[0],
+                                 self.layout.key_size),
                                 renderer=self.renderer)
-
         if self.show_text:
             self.input.enable()
 
+        # Setup de joystick
         if self.joystick_navigation:
             if not pygame.joystick.get_init():
                 pygame.joystick.init()
@@ -593,12 +590,9 @@ class VKeyboard(object):
         # Setup the surface used to hide/clear the keyboard
         if surface and surface != self.eraser:
             self.eraser = surface
-            self.original_layout.sprites.clear(surface, self.eraser.copy())
-            self.original_layout.sprites.set_clip(self.background.rect)
-            if self.special_char_layout:
-                self.special_char_layout.sprites.clear(surface,
-                                                       self.eraser.copy())
-                self.special_char_layout.sprites.set_clip(self.background.rect)
+            for layout in self.layouts:
+                layout.sprites.clear(surface, self.eraser.copy())
+                layout.sprites.set_clip(self.background.rect)
 
         rects = self.layout.sprites.draw(surface or self.surface)
         rects += self.input.draw(surface or self.surface, force)
@@ -626,6 +620,11 @@ class VKeyboard(object):
                     if key:
                         self.on_key_down(key)
                         self.on_select(0, 0, key)
+                    elif self.input.get_rect().collidepoint(event.pos)\
+                            and self.layout.selection:
+                        self.layout.selection.set_selected(0)
+                        self.layout.selection = None
+                        self.input.set_selected(1)
                 elif event.type == pygame.KEYDOWN:
                     key = self.layout.get_key(event.unicode or event.key)
                     if key:
@@ -702,18 +701,17 @@ class VKeyboard(object):
     def on_uppercase(self):
         """Uppercase key press handler."""
         self.uppercase = not self.uppercase
-        self.original_layout.set_uppercase(self.uppercase)
-        if self.special_char_layout:
-            self.special_char_layout.set_uppercase(self.uppercase)
+        for layout in self.layouts:
+            layout.set_uppercase(self.uppercase)
 
     def on_special_char(self):
         """Special char key press handler."""
-        if self.special_char_layout:
+        if len(self.layouts) > 1:
             self.special_char = not self.special_char
             if self.special_char:
-                self.set_layout(self.special_char_layout)
+                self.set_layout(self.layouts[1])
             else:
-                self.set_layout(self.original_layout)
+                self.set_layout(self.layouts[0])
 
     def on_key_down(self, key):
         """Process key down event by pressing the given key.

@@ -40,7 +40,6 @@ def consumer(text):
 # Initializes and activates vkeyboard
 layout = VKeyboardLayout(VKeyboardLayout.AZERTY)
 keyboard = VKeyboard(surface, consumer, layout)
-keyboard.enable()
 ```
 
 The keyboard has the following optional parameters:
@@ -58,6 +57,8 @@ A ``VKeyboard`` object handles the following pygame event :
 - **MOUSEBUTTONUP**
 - **KEYDOWN**
 - **KEYUP**
+- **JOYHATMOTION**
+- **JOYBUTTONDOWN**
 
 In order to process those events, keyboard instance event handling method should be called like in the following example:
 
@@ -77,7 +78,7 @@ while True:
     #
 
     # Update the display
-    pygame.display.update(rects) # Update only required dirty parts
+    pygame.display.update(rects) # Update only dirty parts
 ```
 
 It will update key state accordingly as the keyboard buffer as well. Buffer modification will be notified
