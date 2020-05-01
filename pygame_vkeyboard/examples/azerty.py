@@ -24,7 +24,7 @@ def main(test=False):
 
     # Init pygame
     pygame.init()
-    screen = pygame.display.set_mode((600, 400))
+    screen = pygame.display.set_mode((500, 400))
 
     # Create keyboard
     layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)

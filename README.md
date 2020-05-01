@@ -7,7 +7,9 @@ Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable
 <div align="center">
     <table>
     <tr>
-        <td><img src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/embedded.png">
+        <td><img src="https://raw.githubusercontent.com/Faylixe/pygame_vkeyboard/master/screenshot/vkeyboard_azerty.png">
+        </td>
+        <td><img src="https://github.com/Faylixe/pygame-vkeyboard/blob/master/screenshot/vkeyboard_numeric.gif?raw=true">
         </td>
         <td><img src="https://github.com/Faylixe/pygame-vkeyboard/blob/master/screenshot/vkeyboard_textinput.gif?raw=true">
         </td>
@@ -68,9 +70,14 @@ while True:
     keyboard.update(events)
 
     # Draw the keyboard
-    keyboard.draw(surface)
+    rects = keyboard.draw(surface)
 
+    #
     # Perform other tasks here
+    #
+
+    # Update the display
+    pygame.display.update(rects) # Update only required dirty parts
 ```
 
 It will update key state accordingly as the keyboard buffer as well. Buffer modification will be notified
@@ -121,7 +128,7 @@ renderer = VKeyboardRenderer(
     ((0, 0, 0), (255, 255, 255)),
     # Text box cursor color.
     (0, 0, 0),
-    # Selected key color.
+    # Color to highlight the selected key.
     (20, 200, 98),
     # Keyboard background color.
     (50, 50, 50),

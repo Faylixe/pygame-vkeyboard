@@ -113,6 +113,20 @@ class VCursor(pygame.sprite.DirtySprite):
             self.index = index
             self.dirty = 1
 
+    def set_selected(self, state):
+        """Set the key selection state (1 for selected else 0)
+        and redraws it.
+
+        Parameters
+        ----------
+        state:
+            New key state.
+        """
+        if self.selected != int(state):
+            self.selected = int(state)
+            self.renderer.draw_cursor(self.image, self)
+            self.dirty = 1
+
     def update(self, events):
         """Toggle visibility of the cursor."""
         self.clock.tick()
@@ -241,6 +255,7 @@ class VTextInput(object):
             if not specified.
         """
         self.state = 0
+        self.selected = 0
         self.position = position
         self.size = size  # One ligne size
         self.text = ''
@@ -290,6 +305,18 @@ class VTextInput(object):
         self.cursor.visible = 0
         self.background.visible = 0
         self.sprites.get_sprites_from_layer(1)[0].visible = 0
+
+    def set_selected(self, state):
+        """Set the input box selection state (1 for selected else 0)
+        and redraws it.
+
+        Parameters
+        ----------
+        state:
+            New key state.
+        """
+        self.selected = int(state)
+        self.cursor.set_selected(state)
 
     def get_rect(self):
         """Return text input rect."""

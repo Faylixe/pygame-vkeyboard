@@ -24,7 +24,7 @@ def main(test=False):
 
     # Init pygame
     pygame.init()
-    screen = pygame.display.set_mode((250, 400))
+    screen = pygame.display.set_mode((200, 400))
 
     # Create keyboard
     model = ['123', '456', '789', '*0#']
@@ -34,6 +34,7 @@ def main(test=False):
                                      allow_special_chars=False,
                                      allow_space=False)
     keyboard = vkboard.VKeyboard(screen, on_key_event, layout,
+                                 special_char_layout=None,
                                  joystick_navigation=True)
 
     # Main loop
