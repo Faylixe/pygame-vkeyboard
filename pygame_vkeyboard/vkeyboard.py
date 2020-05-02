@@ -614,7 +614,7 @@ class VKeyboard(object):
 
             for event in events:
                 if event.type == pygame.MOUSEBUTTONDOWN\
-                                and event.button in (1, 2, 3):
+                        and event.button in (1, 2, 3):
                     # Don't consider the mouse wheel (button 4 & 5)
                     key = self.layout.get_key_at(event.pos)
                     if key:
