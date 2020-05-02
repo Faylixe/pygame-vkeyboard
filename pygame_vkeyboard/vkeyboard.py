@@ -445,7 +445,7 @@ class VKeyboard(object):
     def __init__(self,
                  surface,
                  text_consumer,
-                 layout,
+                 main_layout,
                  show_text=False,
                  joystick_navigation=False,
                  renderer=VKeyboardRenderer.DEFAULT,
@@ -458,8 +458,8 @@ class VKeyboard(object):
             Surface this keyboard will be displayed at.
         text_consumer:
             Consumer that process text for each update.
-        layout:
-            Layout this keyboard will use.
+        main_layout:
+            First displayed layout of this keyboard.
         show_text:
             Display the current text in a text box.
         joystick_navigation:
@@ -486,15 +486,15 @@ class VKeyboard(object):
                                       self.renderer)
 
         # Setup the layouts
-        self.layout = layout
-        self.layouts = [layout]
+        self.layout = main_layout
+        self.layouts = [main_layout]
         if special_char_layout and self.layout.allow_special_chars:
             self.layouts.append(special_char_layout)
 
-        for lay in self.layouts:
-            lay.configure_special_keys(self)
-            lay.configure_renderer(self.renderer)
-            lay.sprites.add(self.background, layer=0)
+        for layout in self.layouts:
+            layout.configure_special_keys(self)
+            layout.configure_renderer(self.renderer)
+            layout.sprites.add(self.background, layer=0)
 
         synchronize_layouts(self.surface.get_size(), *self.layouts)
         self.background.set_rect(*self.layout.position + self.layout.size)

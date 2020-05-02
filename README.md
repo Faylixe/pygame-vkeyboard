@@ -71,18 +71,31 @@ while True:
     keyboard.update(events)
 
     # Draw the keyboard
-    rects = keyboard.draw(surface)
+    keyboard.draw(surface)
 
     #
     # Perform other tasks here
     #
 
     # Update the display
-    pygame.display.update(rects) # Update only dirty parts
+    pygame.display.flip()
 ```
 
-It will update key state accordingly as the keyboard buffer as well. Buffer modification will be notified
-through the keyboard text consumer function.
+It will update key state accordingly as the keyboard buffer as well.
+The buffer modification will be notified through the keyboard text consumer function.
+
+The global performances can be improved by avoiding to flip the entire display
+at each loop by using the ``pygame.display.update()`` function.
+
+```python
+while True:
+
+    # Draw the keyboard
+    rects = keyboard.draw(surface)
+
+    # Update only the dirty rectangles of the display
+    pygame.display.update(rects)
+```
 
 **Note:** the ``surface`` parameter of the ``draw()`` method is optional, it is used to clear/hide the keyboard when it is necessary and may be mandatory if the surface has changed.
 
