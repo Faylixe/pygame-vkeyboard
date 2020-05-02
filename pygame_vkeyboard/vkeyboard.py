@@ -273,7 +273,7 @@ class VKeyboardLayout(object):
         # Dispatch special keys in the layout
         while special_keys:
             first = False
-            while len(special_keys) > 0 and len(current_row) < max_length:
+            while special_keys and len(current_row) < max_length:
                 current_row.add_key(special_keys.pop(0), first=first)
                 first = not first
             if i > 0:
@@ -334,8 +334,8 @@ class VKeyboardLayout(object):
         for row in self.rows:
             r = len(row)
             width = (r * self.key_size) + ((r + 1) * self.padding)
-            x = (surface_size[0] - width) / 2
-            if row.space is not None:
+            x = (surface_size[0] - width) // 2 + self.padding
+            if row.space:
                 x -= ((row.space.length - 1) * self.key_size) / 2
             row.set_size((x, y), self.key_size, self.padding)
             y += self.padding + self.key_size
@@ -491,10 +491,10 @@ class VKeyboard(object):
         if special_char_layout and self.layout.allow_special_chars:
             self.layouts.append(special_char_layout)
 
-        for layout in self.layouts:
-            layout.configure_special_keys(self)
-            layout.configure_renderer(self.renderer)
-            layout.sprites.add(self.background, layer=0)
+        for lay in self.layouts:
+            lay.configure_special_keys(self)
+            lay.configure_renderer(self.renderer)
+            lay.sprites.add(self.background, layer=0)
 
         synchronize_layouts(self.surface.get_size(), *self.layouts)
         self.background.set_rect(*self.layout.position + self.layout.size)
@@ -682,8 +682,8 @@ class VKeyboard(object):
                 return
 
             closest = self.layout.get_key_closest(
-                                        key or self.layout.selection,
-                                        loop_col=not self.input.is_enabled())
+                key or self.layout.selection,
+                loop_col=not self.input.is_enabled())
 
             self.layout.selection.set_selected(0)
             self.layout.selection = None
