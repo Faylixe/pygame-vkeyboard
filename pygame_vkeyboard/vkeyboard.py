@@ -629,7 +629,8 @@ class VKeyboard(object):
                     key = self.layout.get_key(event.unicode or event.key)
                     if key:
                         self.on_key_down(key)
-                    if event.key == pygame.K_LEFT and not self.input.selected:
+                        self.on_select(0, 0, key)
+                    elif event.key == pygame.K_LEFT and not self.input.selected:
                         self.on_select(0, -1)
                     elif event.key == pygame.K_UP:
                         self.on_select(-1, 0)
@@ -638,8 +639,7 @@ class VKeyboard(object):
                         self.on_select(0, 1)
                     elif event.key == pygame.K_DOWN:
                         self.on_select(1, 0)
-                    elif event.key == pygame.K_RETURN\
-                            and self.layout.selection:
+                    elif event.key == pygame.K_RETURN and self.layout.selection:
                         self.on_key_down(self.layout.selection)
                 elif event.type == pygame.JOYHATMOTION:
                     if event.value == JOYHAT_LEFT and\
@@ -652,10 +652,10 @@ class VKeyboard(object):
                         self.on_select(0, 1)
                     elif event.value == JOYHAT_DOWN:
                         self.on_select(1, 0)
-                    elif event.type == pygame.JOYBUTTONDOWN\
-                            and event.button == 0 and self.layout.selection:
-                        # Select button pressed
-                        self.on_key_down(self.layout.selection)
+                elif event.type == pygame.JOYBUTTONDOWN\
+                        and event.button == 0 and self.layout.selection:
+                    # Select button pressed
+                    self.on_key_down(self.layout.selection)
 
     def on_select(self, increment_row, increment_col, key=None):
         """"Change the currently selected key.

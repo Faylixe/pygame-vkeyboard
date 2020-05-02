@@ -152,16 +152,25 @@ class VKey(pygame.sprite.DirtySprite):
                     and event.button in (1, 2, 3):
                 # Don't consider the mouse wheel (button 4 & 5):
                 self.set_pressed(0)
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.unicode and event.unicode == self.value:
                     self.set_pressed(1)
                     self.pressed_key = event.key
                 elif event.key == self.value:
                     self.set_pressed(1)
                     self.pressed_key = event.key
+                elif event.key == pygame.K_RETURN and self.selected:
+                    self.set_pressed(1)
+                    self.pressed_key = event.key
             elif event.type == pygame.KEYUP and self.pressed_key is not None:
                 self.set_pressed(0)
                 self.pressed_key = None
+            elif event.type == pygame.JOYBUTTONDOWN and event.button == 0\
+                    and self.selected:  # Select button pressed
+                self.set_pressed(1)
+            elif event.type == pygame.JOYBUTTONUP and event.button == 0\
+                    and self.selected:  # Select button released
+                self.set_pressed(0)
 
     def update_buffer(self, string):
         """Text update method.

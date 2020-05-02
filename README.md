@@ -59,6 +59,7 @@ A ``VKeyboard`` object handles the following pygame event :
 - **KEYUP**
 - **JOYHATMOTION**
 - **JOYBUTTONDOWN**
+- **JOYBUTTONUP**
 
 In order to process those events, keyboard instance event handling method should be called like in the following example:
 
