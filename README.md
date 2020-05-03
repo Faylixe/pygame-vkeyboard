@@ -1,6 +1,6 @@
 # pygame-vkeyboard
 
-[![Python package](https://github.com/Faylixe/pygame_vkeyboard/workflows/Python%20package/badge.svg?branch=master)](https://github.com/Faylixe/pygame_vkeyboard/actions) [![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard) [![PyPI downloads](https://img.shields.io/pypi/dm/pygame-vkeyboard?color=purple)](https://pypi.org/project/pibooth)
+[![Python package](https://github.com/Faylixe/pygame_vkeyboard/workflows/Python%20package/badge.svg?branch=master)](https://github.com/Faylixe/pygame_vkeyboard/actions) [![PyPI version](https://badge.fury.io/py/pygame-vkeyboard.svg)](https://badge.fury.io/py/pygame-vkeyboard) [![PyPI downloads](https://img.shields.io/pypi/dm/pygame-vkeyboard?color=purple)](https://pypi.org/project/pygame-vkeyboard)
 
 Visual keyboard for Pygame engine. Aims to be easy to use as highly customizable as well.
 
@@ -170,7 +170,6 @@ You can also create your own renderer. Just override ``VKeyboardRenderer``class 
 - **draw_back_key(surface, key)**: Draws back key.
 - **draw_uppercase_key(surface, key)**: Draw uppercase switch key.
 - **draw_special_char_key(surface, key)**: Draw special character switch key.
-
 
 ## Getting/Setting data
 
