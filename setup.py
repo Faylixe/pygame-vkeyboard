@@ -18,7 +18,7 @@ with open(join(here, 'README.md'), 'r', encoding='utf-8') as stream:
 setup(
     name='pygame-vkeyboard',
     version=pygame_vkeyboard.__version__,
-    description=pygame_vkeyboard.__doc__.split()[0],
+    description=pygame_vkeyboard.__doc__,
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Felix Voituret, Antoine Rousseaux',
