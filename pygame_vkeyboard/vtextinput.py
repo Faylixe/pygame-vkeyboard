@@ -304,7 +304,8 @@ class VTextInput(object):
         self.state = 0
         self.cursor.visible = 0
         self.background.visible = 0
-        self.sprites.get_sprites_from_layer(1)[0].visible = 0
+        for line in self.sprites.get_sprites_from_layer(1):
+            line.visible = 0
 
     def set_selected(self, state):
         """Set the input box selection state (1 for selected else 0)
