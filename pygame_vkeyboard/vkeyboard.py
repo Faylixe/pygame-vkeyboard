@@ -33,8 +33,6 @@ from .vrenderers import VKeyboardRenderer
 from .vtextinput import VTextInput, VBackground
 
 
-# Configure LOGGER.
-logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 
 # Joystick controls
