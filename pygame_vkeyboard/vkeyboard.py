@@ -289,6 +289,7 @@ class VKeyboardLayout(object):
         while special_keys:
             special_row.add_key(special_keys.pop(0), first=first)
             first = not first
+
         if special_row:
             self.rows.append(special_row)
 
@@ -447,7 +448,7 @@ class VKeyboard(object):
                  show_text=False,
                  joystick_navigation=False,
                  renderer=VKeyboardRenderer.DEFAULT,
-                 special_char_layout=VKeyboardLayout(VKeyboardLayout.SPECIAL)):
+                 special_char_layout=None):
         """ Default constructor.
 
         Parameters
@@ -486,7 +487,9 @@ class VKeyboard(object):
         # Setup the layouts
         self.layout = main_layout
         self.layouts = [main_layout]
-        if special_char_layout and self.layout.allow_special_chars:
+        if self.layout.allow_special_chars:
+            if not special_char_layout:
+                special_char_layout = VKeyboardLayout(VKeyboardLayout.SPECIAL)
             self.layouts.append(special_char_layout)
 
         for layout in self.layouts:
