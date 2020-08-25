@@ -12,6 +12,21 @@ import pygame  # pylint: disable=import-error
 from . import vkeys
 
 
+def get_font(font_name, size):
+    """Get font object from font name and size.
+
+    This method is used to optimize the number of opened font files
+    and avoid reaching the limit of the system (each call to Font()
+    class will open the font file, and let it opened).
+    """
+    if osp.isfile(font_name):
+        if not hasattr(pygame.font, 'loaded'):
+            setattr(pygame.font, 'loaded', {})
+        return pygame.font.loaded.setdefault((font_name, size), pygame.font.Font(font_name, size))
+    else:
+        return pygame.font.Font(font_name, size)
+
+
 def fit_font(font_name, max_height):
     """Set the size of the font to fit the given height.
 
@@ -25,7 +40,7 @@ def fit_font(font_name, max_height):
     max_height:
         Height to fit.
     """
-    font = pygame.font.Font(font_name, 1)
+    font = get_font(font_name, 1)
 
     # Ensure a large panel of characters heights
     text = "?/|!()§&@0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN"  # noqa
@@ -35,7 +50,7 @@ def fit_font(font_name, max_height):
 
     while start < end:
         k = (start + end) // 2
-        font = pygame.font.Font(font_name, k)
+        font = get_font(font_name, k)
         height = font.size(text)[1]
         if height > max_height:
             end = k
