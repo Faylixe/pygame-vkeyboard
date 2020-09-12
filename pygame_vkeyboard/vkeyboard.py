@@ -178,6 +178,7 @@ class VKeyboardLayout(object):
                  model,
                  key_size=None,
                  padding=5,
+                 height_ratio=None,
                  allow_uppercase=True,
                  allow_special_chars=True,
                  allow_space=True):
@@ -188,9 +189,12 @@ class VKeyboardLayout(object):
         model:
             Layout model to use.
         key_size:
-            Size of the key, if not specified will be computed dynamically.
+            Size of the key, dynamically computed if not specified.
         padding:
             Padding between key (work horizontally as vertically).
+        height_ratio:
+            Ratio (0.2 to 1) of the surface height to recover, dynamically
+            computed if not specified.
         allow_uppercase:
             Boolean flag that indicates usage of upper case switching key.
         allow_special_chars:
@@ -209,6 +213,7 @@ class VKeyboardLayout(object):
         self.sprites = pygame.sprite.LayeredDirty()
         self.key_size = key_size
         self.padding = padding
+        self.height_ratio = height_ratio
         self.selection = None
         self.allow_space = allow_space
         self.allow_uppercase = allow_uppercase
@@ -223,6 +228,8 @@ class VKeyboardLayout(object):
         self.max_length = len(max(self.rows, key=len))
         if self.max_length == 0:
             raise ValueError('Empty layout model provided')
+        if height_ratio is not None and (height_ratio < 0.2 or height_ratio > 1):
+            raise ValueError('Surface height ratio shall be from 0.2 to 1')
 
     def hide(self):
         """Hide all keys."""
@@ -302,18 +309,23 @@ class VKeyboardLayout(object):
         surface_size:
             Size of the surface this layout will be rendered on.
         """
-        r = len(self.rows)
+        nb_rows = len(self.rows)
+        key_size_defined = self.key_size is not None
         if self.key_size is None:
             self.key_size = int(
                 (surface_size[0] - (self.padding * (self.max_length + 1)))
                 / self.max_length)
-        height = self.key_size * r + self.padding * (r + 1)
-        if height >= surface_size[1] / 2:
-            self.key_size = int(((surface_size[1] / 2)
-                                 - (self.padding * (r + 1))) / r)
-            height = self.key_size * r + self.padding * (r + 1)
-            LOGGER.warning('Computed layout height outbound target surface,'
-                           ' reducing key_size to %spx', self.key_size)
+
+        height = self.key_size * nb_rows + self.padding * (nb_rows + 1)
+        if height > surface_size[1] * (self.height_ratio or 0.5):
+            self.key_size = int((surface_size[1] * (self.height_ratio or 0.5)
+                                 - (self.padding * (nb_rows + 1))) / nb_rows)
+            height = self.key_size * nb_rows + self.padding * (nb_rows + 1)
+            if key_size_defined:
+                LOGGER.warning('Computed layout height outbound target surface,'
+                               ' reducing key_size to %spx', self.key_size)
+        elif self.height_ratio is not None:
+            height = surface_size[1] * self.height_ratio
         self.set_size((surface_size[0], int(height)), surface_size)
 
     def set_size(self, size, surface_size):
@@ -329,10 +341,13 @@ class VKeyboardLayout(object):
         """
         self.size = size
         self.position = (0, surface_size[1] - self.size[1])
-        y = self.position[1] + self.padding
+
+        y = self.position[1] + (self.size[1] - len(self.rows) * self.key_size
+                                - (len(self.rows) + 1) * self.padding) // 2
+        y += self.padding
         for row in self.rows:
-            r = len(row)
-            width = (r * self.key_size) + ((r + 1) * self.padding)
+            nb_keys = len(row)
+            width = (nb_keys * self.key_size) + ((nb_keys + 1) * self.padding)
             x = (surface_size[0] - width) // 2 + self.padding
             if row.space:
                 x -= ((row.space.length - 1) * self.key_size) / 2
@@ -489,7 +504,14 @@ class VKeyboard(object):
         self.layouts = [main_layout]
         if self.layout.allow_special_chars:
             if not special_char_layout:
-                special_char_layout = VKeyboardLayout(VKeyboardLayout.SPECIAL)
+                special_char_layout = VKeyboardLayout(
+                            VKeyboardLayout.SPECIAL,
+                            key_size=self.layout.key_size,
+                            padding=self.layout.padding,
+                            height_ratio=self.layout.height_ratio,
+                            allow_uppercase=self.layout.allow_uppercase,
+                            allow_special_chars=self.layout.allow_special_chars,
+                            allow_space=self.layout.allow_space)
             self.layouts.append(special_char_layout)
 
         for layout in self.layouts:

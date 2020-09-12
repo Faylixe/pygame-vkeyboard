@@ -42,7 +42,7 @@ def fit_font(font_name, max_height):
         else:
             start = k + 1
         if start < end:
-            # Run garbadge collector, to avoid opening too many files
+            # Run garbage collector, to avoid opening too many files
             del font
 
     return font

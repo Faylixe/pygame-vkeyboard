@@ -24,12 +24,14 @@ def main(test=False):
 
     # Init pygame
     pygame.init()
-    screen = pygame.display.set_mode((200, 400))
+    screen = pygame.display.set_mode((400, 400))
 
     # Create keyboard
     model = ['123', '456', '789', '*0#']
     layout = vkboard.VKeyboardLayout(model,
-                                     key_size=40,
+                                     key_size=30,
+                                     padding = 15,
+                                     height_ratio=0.8,
                                      allow_uppercase=False,
                                      allow_special_chars=False,
                                      allow_space=False)

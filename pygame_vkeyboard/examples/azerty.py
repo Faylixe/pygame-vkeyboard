@@ -27,7 +27,7 @@ def main(test=False):
     screen = pygame.display.set_mode((500, 400))
 
     # Create keyboard
-    layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
+    layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY, height_ratio=1)
     keyboard = vkboard.VKeyboard(screen, on_key_event, layout)
 
     clock = pygame.time.Clock()
