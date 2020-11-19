@@ -648,6 +648,18 @@ class VKeyboard(object):
                         self.layout.selection.set_selected(0)
                         self.layout.selection = None
                         self.input.set_selected(1)
+                elif event.type == pygame.FINGERDOWN:
+                    display_size = pygame.display.get_surface().get_size()
+                    finger_pos = (event.x * display_size[0], event.y * display_size[1])
+                    key = self.layout.get_key_at(finger_pos)
+                    if key:
+                        self.on_key_down(key)
+                        self.on_select(0, 0, key)
+                    elif self.input.get_rect().collidepoint(finger_pos)\
+                            and self.layout.selection:
+                        self.layout.selection.set_selected(0)
+                        self.layout.selection = None
+                        self.input.set_selected(1)
                 elif event.type == pygame.KEYDOWN:
                     key = self.layout.get_key(event.unicode or event.key)
                     if key:

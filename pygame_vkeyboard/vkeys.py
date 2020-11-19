@@ -152,6 +152,13 @@ class VKey(pygame.sprite.DirtySprite):
                     and event.button in (1, 2, 3):
                 # Don't consider the mouse wheel (button 4 & 5):
                 self.set_pressed(0)
+            if event.type == pygame.FINGERDOWN:
+                display_size = pygame.display.get_surface().get_size()
+                finger_pos = (event.x * display_size[0], event.y * display_size[1])
+                if self.rect.collidepoint(finger_pos):
+                    self.set_pressed(1)
+            elif event.type == pygame.FINGERUP:
+                self.set_pressed(0)
             elif event.type == pygame.KEYDOWN:
                 if event.unicode and event.unicode == self.value:
                     self.set_pressed(1)

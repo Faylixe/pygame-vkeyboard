@@ -55,6 +55,8 @@ A ``VKeyboard`` object handles the following pygame event :
 
 - **MOUSEBUTTONDOWN**
 - **MOUSEBUTTONUP**
+- **FINGERDOWN**
+- **FINGERUP**
 - **KEYDOWN**
 - **KEYUP**
 - **JOYHATMOTION**
