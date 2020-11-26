@@ -371,6 +371,10 @@ class VTextInput(object):
                         and event.button in (1, 2, 3):
                     # Don't consider the mouse wheel (button 4 & 5):
                     self.set_cursor(event.pos)
+                if event.type == pygame.FINGERDOWN:
+                    display_size = pygame.display.get_surface().get_size()
+                    finger_pos = (event.x * display_size[0], event.y * display_size[1])
+                    self.set_cursor(finger_pos)
 
     def update_lines(self):
         """Update lines content with the current text."""
