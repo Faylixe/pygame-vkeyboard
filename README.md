@@ -113,7 +113,7 @@ def __init__(self, model, key_size=None, padding=5, height_ratio=None, allow_upp
 ```
 
 If the **key_size** or **height_ratio** parameters are not provided, they will be computed dynamically regarding of
-the target surface the keyboard will be rendered into.
+the target surface the keyboard will be rendered into (**height_ratio** is 50% by default).
 
 In order to only display a numerical ``Vkeyboard`` for example, you can use a custom layout like this :
 
@@ -188,6 +188,9 @@ keyboard.get_text()
 
 # Set the current text (clear the existing one).
 keyboard.set_text("Hello world!")
+
+# Enable the keyboard, it will be displayed on next keyboard.draw() call.
+keyboard.enable()
 
 # Return True if the keyboard is enabled (thus displayed at screen).
 keyboard.is_enabled()
