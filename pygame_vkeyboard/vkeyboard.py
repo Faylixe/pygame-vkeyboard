@@ -591,12 +591,25 @@ class VKeyboard(object):
             rect = rect.union(self.input.get_rect())
         return rect
 
+    def set_eraser(self, surface):
+        """Setup the surface used to hide/clear the keyboard.
+        """
+        self.eraser = surface.copy()
+        for layout in self.layouts:
+            layout.sprites.clear(surface, self.eraser)
+
     def draw(self, surface=None, force=False):
         """Draw the virtual keyboard.
 
         This method is optimized to be called at each loop of the
         main application. It uses DirtySprite to update only parts
         of the screen that need to be refreshed.
+
+        The first call to this method will setup the "eraser" surface that
+        will be used to redraw dirty parts of the screen.
+
+        The `force` parameter shall be used if the surface has been redrawn:
+        it reset the eraser and redraw all sprites.
 
         Parameters
         ----------
@@ -610,15 +623,22 @@ class VKeyboard(object):
         rects:
             List of updated area.
         """
-        # Setup the surface used to hide/clear the keyboard
-        if surface and surface != self.eraser:
-            self.eraser = surface
-            for layout in self.layouts:
-                layout.sprites.clear(surface, self.eraser.copy())
+        surface = surface or self.surface
+
+        # Setup eraser
+        if not self.eraser or force:
+            self.set_eraser(surface)
+
+        # Setup new the surface where to draw
+        for layout in self.layouts:
+            if layout.sprites.get_clip() != self.background.rect:
+                # Changing the clipping area will force update of all
+                # sprites without using "dirty mechanism"
                 layout.sprites.set_clip(self.background.rect)
 
-        rects = self.layout.sprites.draw(surface or self.surface)
-        rects += self.input.draw(surface or self.surface, force)
+        rects = self.layout.sprites.draw(surface)
+        rects += self.input.draw(surface, force)
+
         if force:
             self.layout.sprites.repaint_rect(self.background.rect)
         return rects
@@ -631,7 +651,7 @@ class VKeyboard(object):
         events:
             List of events to process.
         """
-        if self.state > 0:
+        if self.state == 1:
             self.layout.sprites.update(events)
             self.input.update(events)
 

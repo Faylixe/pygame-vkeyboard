@@ -301,7 +301,7 @@ class VTextInput(object):
 
     def disable(self):
         """Set this text input as non active."""
-        self.state = 0
+        self.state = 0   # Disabled by default
         self.cursor.visible = 0
         self.background.visible = 0
         for line in self.sprites.get_sprites_from_layer(1):
@@ -323,6 +323,12 @@ class VTextInput(object):
         """Return text input rect."""
         return self.background.rect
 
+    def set_eraser(self, surface):
+        """Setup the surface used to hide/clear the keyboard.
+        """
+        self.eraser = surface.copy()
+        self.sprites.clear(surface, self.eraser)
+
     def draw(self, surface, force):
         """Draw the text input box.
 
@@ -333,13 +339,18 @@ class VTextInput(object):
         force:
             Force the drawing of the entire surface (time consuming).
         """
-        # Setup the surface used to hide/clear the text input
-        if surface and surface != self.eraser:
-            self.eraser = surface
-            self.sprites.clear(surface, self.eraser.copy())
-            self.sprites.set_clip(pygame.Rect(self.position[0], 0,
-                                              self.size[0],
-                                              self.position[1] + self.size[1]))
+        # Setup eraser
+        if not self.eraser or force:
+            self.set_eraser(surface)
+
+        # Setup new the surface where to draw
+        clip_rect = pygame.Rect(self.position[0], 0,
+                                self.background.rect.width,
+                                self.background.rect.bottom)
+        if self.sprites.get_clip() != clip_rect:
+            # Changing the clipping area will force update of all
+            # sprites without using "dirty mechanism"
+            self.sprites.set_clip(clip_rect)
 
         if force:
             self.sprites.repaint_rect(self.background.rect)
@@ -353,7 +364,7 @@ class VTextInput(object):
         events:
             List of events to process.
         """
-        if self.state > 0:
+        if self.state == 1:
             self.sprites.update(events)
             for event in events:
                 if event.type == pygame.KEYUP and self.cursor.selected:
@@ -378,7 +389,7 @@ class VTextInput(object):
 
     def update_lines(self):
         """Update lines content with the current text."""
-        if self.state > 0:
+        if self.state == 1:
             remain = self.text
 
             # Update existing line with text
