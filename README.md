@@ -208,6 +208,7 @@ To run the examples, simply execute these commands in a terminal:
 python -m pygame_vkeyboard.examples.azerty
 python -m pygame_vkeyboard.examples.numeric
 python -m pygame_vkeyboard.examples.textinput
+python -m pygame_vkeyboard.examples.resize
 ```
 
 ## Contributing

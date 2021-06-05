@@ -6,4 +6,4 @@
 from .vkeyboard import VKeyboardLayout, VKeyboard
 from .vrenderers import VKeyboardRenderer
 
-__version__ = '2.0.8'
+__version__ = '2.0.9'
