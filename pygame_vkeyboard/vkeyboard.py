@@ -172,7 +172,6 @@ class VKeyboardLayout(object):
 
     # TODO : Insert special characters layout which include number.
     SPECIAL = [u'&é"\'(§è!çà)', u'°_-^$¨*ù`%£', u',;:=?.@+<>#', u'€[]{}/\\|']
-    """Special characters layout. """
 
     def __init__(self,
                  model,
@@ -211,7 +210,6 @@ class VKeyboardLayout(object):
         self.size = None
         self.rows = []
         self.sprites = pygame.sprite.LayeredDirty()
-        self.key_size = key_size
         self.padding = padding
         self.height_ratio = height_ratio
         self.selection = None
@@ -230,6 +228,17 @@ class VKeyboardLayout(object):
             raise ValueError('Empty layout model provided')
         if height_ratio is not None and (height_ratio < 0.2 or height_ratio > 1):
             raise ValueError('Surface height ratio shall be from 0.2 to 1')
+
+        self._key_size = key_size
+        self._key_size_computed = None
+
+    @property
+    def key_size(self):
+        return self._key_size or self._key_size_computed
+
+    @key_size.setter
+    def key_size(self, key_size):
+        self._key_size = key_size
 
     def hide(self):
         """Hide all keys."""
@@ -310,18 +319,18 @@ class VKeyboardLayout(object):
             Size of the surface this layout will be rendered on.
         """
         nb_rows = len(self.rows)
-        key_size_defined = self.key_size is not None
-        if self.key_size is None:
-            self.key_size = int(
+        if self._key_size is None:
+            self._key_size_computed = int(
                 (surface_size[0] - (self.padding * (self.max_length + 1)))
                 / self.max_length)
 
         height = self.key_size * nb_rows + self.padding * (nb_rows + 1)
         if height > surface_size[1] * (self.height_ratio or 0.5):
-            self.key_size = int((surface_size[1] * (self.height_ratio or 0.5)
-                                 - (self.padding * (nb_rows + 1))) / nb_rows)
+            self._key_size_computed = int((surface_size[1] * (self.height_ratio or 0.5)
+                                           - (self.padding * (nb_rows + 1))) / nb_rows)
             height = self.key_size * nb_rows + self.padding * (nb_rows + 1)
-            if key_size_defined:
+            if self._key_size:
+                self._key_size = self._key_size_computed
                 LOGGER.warning('Computed layout height outbound target surface,'
                                ' reducing key_size to %spx', self.key_size)
         elif self.height_ratio is not None:
@@ -505,13 +514,13 @@ class VKeyboard(object):
         if self.layout.allow_special_chars:
             if not special_char_layout:
                 special_char_layout = VKeyboardLayout(
-                            VKeyboardLayout.SPECIAL,
-                            key_size=self.layout.key_size,
-                            padding=self.layout.padding,
-                            height_ratio=self.layout.height_ratio,
-                            allow_uppercase=self.layout.allow_uppercase,
-                            allow_special_chars=self.layout.allow_special_chars,
-                            allow_space=self.layout.allow_space)
+                    VKeyboardLayout.SPECIAL,
+                    key_size=self.layout.key_size,
+                    padding=self.layout.padding,
+                    height_ratio=self.layout.height_ratio,
+                    allow_uppercase=self.layout.allow_uppercase,
+                    allow_special_chars=self.layout.allow_special_chars,
+                    allow_space=self.layout.allow_space)
             self.layouts.append(special_char_layout)
 
         for layout in self.layouts:
@@ -519,17 +528,12 @@ class VKeyboard(object):
             layout.configure_renderer(self.renderer)
             layout.sprites.add(self.background, layer=0)
 
-        synchronize_layouts(self.surface.get_size(), *self.layouts)
-        self.background.set_rect(*self.layout.position + self.layout.size)
-
         # Setup the text input box
         self.show_text = show_text
-        self.input = VTextInput((self.layout.position[0],
-                                 self.layout.position[1]
-                                 - self.layout.key_size),
-                                (self.layout.size[0],
-                                 self.layout.key_size),
-                                renderer=self.renderer)
+        self.input = VTextInput((0, 0), (10, 10), renderer=self.renderer)
+
+        self.resize(surface)
+
         if self.show_text:
             self.input.enable()
 
@@ -552,6 +556,36 @@ class VKeyboard(object):
         self.layout.hide()
         self.layout = layout
         self.layout.show()
+
+    def set_eraser(self, surface):
+        """Setup the surface used to hide/clear the keyboard.
+        """
+        self.eraser = surface.copy()
+        for layout in self.layouts:
+            layout.sprites.clear(surface, self.eraser)
+
+    def resize(self, surface):
+        """Resize the keyboard according to the surface size and the parameters
+        of the layout(s).
+
+        Parameters
+        ----------
+        surface:
+            Surface this keyboard will be displayed at.
+        """
+        synchronize_layouts(surface.get_size(), *self.layouts)
+        self.background.set_rect(*self.layout.position + self.layout.size)
+
+        for layout in self.layouts:
+            if layout.sprites.get_clip() != self.background.rect:
+                # Changing the clipping area will force update of all
+                # sprites without using "dirty mechanism"
+                layout.sprites.set_clip(self.background.rect)
+
+        self.input.set_line_rect(self.layout.position[0],
+                                 self.layout.position[1] - self.layout.key_size,
+                                 self.layout.size[0],
+                                 self.layout.key_size)
 
     def set_text(self, text):
         """Set the current text in the internal buffer.
@@ -591,13 +625,6 @@ class VKeyboard(object):
             rect = rect.union(self.input.get_rect())
         return rect
 
-    def set_eraser(self, surface):
-        """Setup the surface used to hide/clear the keyboard.
-        """
-        self.eraser = surface.copy()
-        for layout in self.layouts:
-            layout.sprites.clear(surface, self.eraser)
-
     def draw(self, surface=None, force=False):
         """Draw the virtual keyboard.
 
@@ -625,16 +652,14 @@ class VKeyboard(object):
         """
         surface = surface or self.surface
 
+        # Check if surface has been resized
+        if self.eraser and surface.get_rect() != self.eraser.get_rect():
+            force = True  # To force creating new eraser
+            self.resize(surface)
+
         # Setup eraser
         if not self.eraser or force:
             self.set_eraser(surface)
-
-        # Setup new the surface where to draw
-        for layout in self.layouts:
-            if layout.sprites.get_clip() != self.background.rect:
-                # Changing the clipping area will force update of all
-                # sprites without using "dirty mechanism"
-                layout.sprites.set_clip(self.background.rect)
 
         rects = self.layout.sprites.draw(surface)
         rects += self.input.draw(surface, force)

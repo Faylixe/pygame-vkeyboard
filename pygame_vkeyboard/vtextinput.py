@@ -101,6 +101,22 @@ class VCursor(pygame.sprite.DirtySprite):
             self.rect.topleft = position
             self.dirty = 1
 
+    def set_size(self, width, height):
+        """Set the cursor size.
+
+        Parameters
+        ----------
+        width:
+            Background width.
+        height:
+            Background height.
+        """
+        if self.rect.size != (width, height):
+            self.rect.size = (width, height)
+            self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA, 32)
+            self.renderer.draw_cursor(self.image, self)
+            self.dirty = 1
+
     def set_index(self, index):
         """Move the cursor at the given index.
 
@@ -181,6 +197,22 @@ class VLine(pygame.sprite.DirtySprite):
         """
         if self.rect.topleft != position:
             self.rect.topleft = position
+            self.dirty = 1
+
+    def set_size(self, width, height):
+        """Set the line size.
+
+        Parameters
+        ----------
+        width:
+            Background width.
+        height:
+            Background height.
+        """
+        if self.rect.size != (width, height):
+            self.rect.size = (width, height)
+            self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA, 32)
+            self.renderer.draw_text(self.image, self.text)
             self.dirty = 1
 
     def clear(self):
@@ -265,28 +297,26 @@ class VTextInput(object):
         # Define background sprites
         self.eraser = None
         self.background = VBackground(size, renderer)
-        self.background.set_rect(self.position[0],
-                                 self.position[1] - 2 * self.text_margin,
-                                 self.size[0],
-                                 self.size[1] + 2 * self.text_margin)
         self.sprites = pygame.sprite.LayeredDirty(self.background)
 
         # Initialize first line
         line = VLine((self.size[0] - 2 * self.text_margin,
                       self.size[1]), renderer, True)
-        line.set_position((
-            self.position[0] + self.text_margin,
-            self.position[1] - self.text_margin))
         self.sprites.add(line, layer=1)
 
         # Initialize cursor
-        self.cursor = VCursor((2, size[1] - self.text_margin * 2), renderer)
-        self.cursor.set_position((
-            self.position[0] + self.text_margin,
-            self.position[1]))
+        self.cursor = VCursor((2, self.size[1] - self.text_margin * 2), renderer)
         self.sprites.add(self.cursor, layer=2)
 
         self.disable()
+
+        self.set_line_rect(*self.position + self.size)
+
+    def set_eraser(self, surface):
+        """Setup the surface used to hide/clear the text input.
+        """
+        self.eraser = surface.copy()
+        self.sprites.clear(surface, self.eraser)
 
     def enable(self):
         """Set this text input as active."""
@@ -323,11 +353,46 @@ class VTextInput(object):
         """Return text input rect."""
         return self.background.rect
 
-    def set_eraser(self, surface):
-        """Setup the surface used to hide/clear the keyboard.
+    def set_line_rect(self, x, y, width, height):
+        """Set the input text (one line) absolute position and size.
+
+        Parameters
+        ----------
+        x:
+            Position x.
+        y:
+            Position y.
+        width:
+            Background width.
+        height:
+            Background height.
         """
-        self.eraser = surface.copy()
-        self.sprites.clear(surface, self.eraser)
+        self.size = (width, height)
+        self.position = (x, y)
+        self.background.set_rect(self.position[0],
+                                 self.position[1] - 2 * self.text_margin,
+                                 width,
+                                 height + 2 * self.text_margin)
+
+        for line in self.sprites.get_sprites_from_layer(1):
+            line.clear()
+            line.set_position((self.position[0] + self.text_margin,
+                               self.position[1] - self.text_margin))
+            line.set_size(self.size[0] - 2 * self.text_margin, self.size[1])
+        self.update_lines()
+
+        self.cursor.set_position((self.position[0] + self.text_margin,
+                                  self.position[1]))
+        self.cursor.set_size(2, self.size[1] - self.text_margin * 2)
+
+        # Setup new the surface where to draw
+        clip_rect = pygame.Rect(self.position[0], 0,
+                                self.background.rect.width,
+                                self.background.rect.bottom)
+        if self.sprites.get_clip() != clip_rect:
+            # Changing the clipping area will force update of all
+            # sprites without using "dirty mechanism"
+            self.sprites.set_clip(clip_rect)
 
     def draw(self, surface, force):
         """Draw the text input box.
@@ -339,18 +404,13 @@ class VTextInput(object):
         force:
             Force the drawing of the entire surface (time consuming).
         """
+        # Check if surface has been resized
+        if self.eraser and surface.get_rect() != self.eraser.get_rect():
+            force = True  # To force creating new eraser
+
         # Setup eraser
         if not self.eraser or force:
             self.set_eraser(surface)
-
-        # Setup new the surface where to draw
-        clip_rect = pygame.Rect(self.position[0], 0,
-                                self.background.rect.width,
-                                self.background.rect.bottom)
-        if self.sprites.get_clip() != clip_rect:
-            # Changing the clipping area will force update of all
-            # sprites without using "dirty mechanism"
-            self.sprites.set_clip(clip_rect)
 
         if force:
             self.sprites.repaint_rect(self.background.rect)
