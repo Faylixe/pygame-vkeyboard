@@ -532,7 +532,7 @@ class VKeyboard(object):
         self.show_text = show_text
         self.input = VTextInput((0, 0), (10, 10), renderer=self.renderer)
 
-        self.resize(surface)
+        self.set_size(*surface.get_size())
 
         if self.show_text:
             self.input.enable()
@@ -564,16 +564,18 @@ class VKeyboard(object):
         for layout in self.layouts:
             layout.sprites.clear(surface, self.eraser)
 
-    def resize(self, surface):
+    def set_size(self, width, height):
         """Resize the keyboard according to the surface size and the parameters
         of the layout(s).
 
         Parameters
         ----------
-        surface:
-            Surface this keyboard will be displayed at.
+        width:
+            Background width.
+        height:
+            Background height.
         """
-        synchronize_layouts(surface.get_size(), *self.layouts)
+        synchronize_layouts((width, height), *self.layouts)
         self.background.set_rect(*self.layout.position + self.layout.size)
 
         for layout in self.layouts:
@@ -655,7 +657,7 @@ class VKeyboard(object):
         # Check if surface has been resized
         if self.eraser and surface.get_rect() != self.eraser.get_rect():
             force = True  # To force creating new eraser
-            self.resize(surface)
+            self.set_size(*surface.get_size())
 
         # Setup eraser
         if not self.eraser or force:
