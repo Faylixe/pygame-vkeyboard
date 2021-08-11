@@ -571,9 +571,9 @@ class VKeyboard(object):
         Parameters
         ----------
         width:
-            Background width.
+            Keyboard width.
         height:
-            Background height.
+            Keyboard height.
         """
         synchronize_layouts((width, height), *self.layouts)
         self.background.set_rect(*self.layout.position + self.layout.size)

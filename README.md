@@ -87,7 +87,7 @@ while True:
 It will update key state accordingly as the keyboard buffer as well.
 The buffer modification will be notified through the keyboard text consumer function.
 
-The global performances can be improved avoiding to flip the entire display
+The **global performances can be improved avoiding to flip the entire display**
 at each loop by using the ``pygame.display.update()`` function.
 
 ```python
